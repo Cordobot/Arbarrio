@@ -1,0 +1,17 @@
+# Android Studio / IntelliJ
+.idea/
+.gradle/
+build/
+app/build/
+*.iml
+
+# Local configuration
+local.properties
+
+# Secrets
+# google-services.json # Usually ignored for public repos, but user might want it for now. 
+# I will keep it commented out for now so the user can decide.
+
+# OS generated
+.DS_Store
+Thumbs.db
