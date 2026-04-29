@@ -26,6 +26,15 @@ class PropertyRepositoryImpl(
         }
     }
 
+    override suspend fun addProperty(property: Property): Result<Unit> {
+        return try {
+            propertiesCollection.document(property.id).set(property).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun toggleFavorite(propertyId: String) {
         // Logic for local/remote favorite toggle
     }

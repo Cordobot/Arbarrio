@@ -11,6 +11,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,7 +28,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import com.arbarrio.app.domain.model.User
 import coil.compose.AsyncImage
 import com.arbarrio.app.domain.model.Property
 import java.text.NumberFormat
@@ -39,18 +47,109 @@ class HomeScreen : Screen {
         val properties by viewModel.properties.collectAsState()
         val categories by viewModel.categories.collectAsState()
         val selectedCategory by viewModel.selectedCategory.collectAsState()
+        val user by viewModel.currentUser.collectAsState()
 
-        Scaffold(
-            topBar = {
-                HomeTopBar()
+        val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+        val scope = rememberCoroutineScope()
+
+        ModalNavigationDrawer(
+            drawerState = drawerState,
+            drawerContent = {
+                ModalDrawerSheet {
+                    Spacer(Modifier.height(16.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Column {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = "User",
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                text = user?.name ?: "Usuario",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp
+                            )
+                            Text(
+                                text = user?.email ?: "",
+                                color = MaterialTheme.colorScheme.secondary,
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+                    HorizontalDivider()
+                    NavigationDrawerItem(
+                        label = { Text("Inicio") },
+                        selected = true,
+                        onClick = { scope.launch { drawerState.close() } },
+                        icon = { Icon(Icons.Default.Home, null) },
+                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                    )
+                    NavigationDrawerItem(
+                        label = { Text("Mis Propiedades") },
+                        selected = false,
+                        onClick = { /* TODO */ },
+                        icon = { Icon(Icons.Default.LocationOn, null) },
+                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                    )
+                    NavigationDrawerItem(
+                        label = { Text("Favoritos") },
+                        selected = false,
+                        onClick = { /* TODO */ },
+                        icon = { Icon(Icons.Default.FavoriteBorder, null) },
+                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                    )
+                    NavigationDrawerItem(
+                        label = { Text("Configuración") },
+                        selected = false,
+                        onClick = { /* TODO */ },
+                        icon = { Icon(Icons.Default.Settings, null) },
+                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                    )
+                    Spacer(Modifier.weight(1f))
+                    NavigationDrawerItem(
+                        label = { Text("Cerrar Sesión") },
+                        selected = false,
+                        onClick = { 
+                            // TODO: Call sign out and navigate to login
+                            navigator.replaceAll(LoginScreen())
+                        },
+                        icon = { Icon(Icons.Default.ExitToApp, null) },
+                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                    )
+                    Spacer(Modifier.height(16.dp))
+                }
             }
-        ) { padding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .background(MaterialTheme.colorScheme.background)
-            ) {
+        ) {
+            Scaffold(
+                topBar = {
+                    HomeTopBar(
+                        onMenuClick = { scope.launch { drawerState.open() } },
+                        user = user
+                    )
+                },
+                floatingActionButton = {
+                    FloatingActionButton(
+                        onClick = { navigator.push(AddPropertyScreen()) },
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = "Añadir Propiedad")
+                    }
+                }
+            ) { padding ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .background(MaterialTheme.colorScheme.background)
+                ) {
                 SearchBar()
                 
                 CategorySection(
@@ -81,10 +180,11 @@ class HomeScreen : Screen {
                 }
             }
         }
+        }
     }
 
     @Composable
-    fun HomeTopBar() {
+    fun HomeTopBar(onMenuClick: () -> Unit, user: User?) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -92,32 +192,49 @@ class HomeScreen : Screen {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Text(
-                    text = "Ubicación",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-                Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onMenuClick) {
                     Icon(
-                        imageVector = Icons.Default.LocationOn,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp)
+                        imageVector = Icons.Default.Menu,
+                        contentDescription = "Menu",
+                        tint = MaterialTheme.colorScheme.onBackground
                     )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Column {
                     Text(
-                        text = "Córdoba, Argentina",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
+                        text = "Ubicación",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.secondary
                     )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = "Córdoba, Argentina",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
             Surface(
                 modifier = Modifier.size(40.dp),
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.primaryContainer
             ) {
-                // Placeholder for profile image
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = user?.email?.firstOrNull()?.uppercase() ?: "U",
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                }
             }
         }
     }

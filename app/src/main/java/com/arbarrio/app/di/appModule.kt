@@ -10,6 +10,7 @@ import com.arbarrio.app.data.repository.PropertyRepositoryImpl
 import com.arbarrio.app.domain.repository.PropertyRepository
 import com.arbarrio.app.ui.screens.AuthViewModel
 import com.arbarrio.app.ui.screens.HomeViewModel
+import com.arbarrio.app.ui.screens.AddPropertyViewModel
 import org.koin.dsl.module
 
 val appModule = module {
@@ -35,7 +36,8 @@ val appModule = module {
     
     // ViewModels
     factory { AuthViewModel(get()) }
-    factory { HomeViewModel(get()) }
+    factory { HomeViewModel(get(), get()) }
+    factory { AddPropertyViewModel(get()) }
     
     // UseCases
 }

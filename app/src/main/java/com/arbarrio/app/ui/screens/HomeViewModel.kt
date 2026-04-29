@@ -8,9 +8,21 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+import com.arbarrio.app.domain.repository.AuthRepository
+import com.arbarrio.app.domain.model.User
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
+
 class HomeViewModel(
-    private val propertyRepository: PropertyRepository
+    private val propertyRepository: PropertyRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
+
+    val currentUser = authRepository.currentUser.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = null
+    )
 
     private val _properties = MutableStateFlow<List<Property>>(emptyList())
     val properties = _properties.asStateFlow()
