@@ -7,9 +7,28 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+import com.arbarrio.app.data.local.PreferencesManager
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
+
 class AuthViewModel(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val preferencesManager: PreferencesManager
 ) : ViewModel() {
+
+    val savedEmail = preferencesManager.savedEmail.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(5000), ""
+    )
+
+    val isRememberMeEnabled = preferencesManager.isRememberMeEnabled.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(5000), false
+    )
+
+    fun saveRememberMe(enabled: Boolean, email: String) {
+        viewModelScope.launch {
+            preferencesManager.saveRememberMeSettings(enabled, email)
+        }
+    }
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()

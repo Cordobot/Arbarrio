@@ -13,7 +13,13 @@ import com.arbarrio.app.ui.screens.HomeViewModel
 import com.arbarrio.app.ui.screens.AddPropertyViewModel
 import org.koin.dsl.module
 
+import org.koin.android.ext.koin.androidContext
+import com.arbarrio.app.data.local.PreferencesManager
+
 val appModule = module {
+    // Preferences (DataStore)
+    single { PreferencesManager(androidContext()) }
+
     // Firebase
     single { FirebaseAuth.getInstance() }
     single { FirebaseFirestore.getInstance() }
@@ -35,7 +41,7 @@ val appModule = module {
     single<PropertyRepository> { PropertyRepositoryImpl(get()) }
     
     // ViewModels
-    factory { AuthViewModel(get()) }
+    factory { AuthViewModel(get(), get()) }
     factory { HomeViewModel(get(), get()) }
     factory { AddPropertyViewModel(get()) }
     
