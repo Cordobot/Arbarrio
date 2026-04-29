@@ -78,7 +78,7 @@ class AddPropertyScreen : Screen {
                 OutlinedTextField(
                     value = price,
                     onValueChange = { price = it },
-                    label = { Text("Precio (AR$)") },
+                    label = { Text("Precio (COP)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -97,14 +97,38 @@ class AddPropertyScreen : Screen {
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // Simulating a dropdown with a simple text field for now, 
-                // but usually this would be an ExposedDropdownMenuBox.
-                OutlinedTextField(
-                    value = category,
-                    onValueChange = { category = it },
-                    label = { Text("Categoría") },
+                var expanded by remember { mutableStateOf(false) }
+                val categoriesList = listOf("Apartamentos", "Casas", "Habitaciones", "Locales", "Apartaestudios")
+
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = it },
                     modifier = Modifier.fillMaxWidth()
-                )
+                ) {
+                    OutlinedTextField(
+                        value = category,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Categoría") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        modifier = Modifier.menuAnchor().fillMaxWidth()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        categoriesList.forEach { selectionOption ->
+                            DropdownMenuItem(
+                                text = { Text(selectionOption) },
+                                onClick = {
+                                    category = selectionOption
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     OutlinedTextField(

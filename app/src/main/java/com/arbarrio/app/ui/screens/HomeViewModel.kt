@@ -27,7 +27,7 @@ class HomeViewModel(
     private val _properties = MutableStateFlow<List<Property>>(emptyList())
     val properties = _properties.asStateFlow()
 
-    private val _categories = MutableStateFlow(listOf("Todos", "Apartamentos", "Casas", "Habitaciones", "Locales"))
+    private val _categories = MutableStateFlow(listOf("Todos", "Apartamentos", "Casas", "Habitaciones", "Locales", "Apartaestudios"))
     val categories = _categories.asStateFlow()
 
     private val _selectedCategory = MutableStateFlow("Todos")

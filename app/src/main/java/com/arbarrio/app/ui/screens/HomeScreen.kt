@@ -15,7 +15,9 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -76,6 +78,22 @@ class HomeScreen : Screen {
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 18.sp
                             )
+                            Spacer(Modifier.height(4.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = "Rating",
+                                    tint = Color(0xFFFFC107),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                Text(
+                                    text = "${user?.rating ?: 0.0} (${user?.reviewCount ?: 0})",
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                            Spacer(Modifier.height(4.dp))
                             Text(
                                 text = user?.email ?: "",
                                 color = MaterialTheme.colorScheme.secondary,
@@ -94,21 +112,40 @@ class HomeScreen : Screen {
                     NavigationDrawerItem(
                         label = { Text("Mis Propiedades") },
                         selected = false,
-                        onClick = { /* TODO */ },
+                        onClick = { 
+                            scope.launch { drawerState.close() }
+                            navigator.push(MyPropertiesScreen())
+                        },
                         icon = { Icon(Icons.Default.LocationOn, null) },
                         modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                     )
                     NavigationDrawerItem(
                         label = { Text("Favoritos") },
                         selected = false,
-                        onClick = { /* TODO */ },
+                        onClick = { 
+                            scope.launch { drawerState.close() }
+                            navigator.push(FavoritesScreen())
+                        },
                         icon = { Icon(Icons.Default.FavoriteBorder, null) },
+                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                    )
+                    NavigationDrawerItem(
+                        label = { Text("Editar Perfil") },
+                        selected = false,
+                        onClick = { 
+                            scope.launch { drawerState.close() }
+                            navigator.push(EditProfileScreen())
+                        },
+                        icon = { Icon(Icons.Default.Edit, null) },
                         modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                     )
                     NavigationDrawerItem(
                         label = { Text("Configuración") },
                         selected = false,
-                        onClick = { /* TODO */ },
+                        onClick = { 
+                            scope.launch { drawerState.close() }
+                            navigator.push(SettingsScreen())
+                        },
                         icon = { Icon(Icons.Default.Settings, null) },
                         modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                     )
@@ -120,7 +157,7 @@ class HomeScreen : Screen {
                             // TODO: Call sign out and navigate to login
                             navigator.replaceAll(LoginScreen())
                         },
-                        icon = { Icon(Icons.Default.ExitToApp, null) },
+                        icon = { Icon(Icons.AutoMirrored.Filled.ExitToApp, null) },
                         modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                     )
                     Spacer(Modifier.height(16.dp))
@@ -329,7 +366,7 @@ class HomeScreen : Screen {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = NumberFormat.getCurrencyInstance(Locale("es", "AR")).format(property.price),
+                            text = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-CO")).format(property.price),
                             fontSize = 20.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = MaterialTheme.colorScheme.primary
