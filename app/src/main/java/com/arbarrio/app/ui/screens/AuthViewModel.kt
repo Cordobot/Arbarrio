@@ -47,11 +47,34 @@ class AuthViewModel(
         }
     }
 
-    fun signUp(email: String, password: String, onSuccess: () -> Unit) {
+    fun signUpExtended(
+        email: String, 
+        password: String, 
+        name: String, 
+        lastName: String, 
+        phone: String, 
+        idNumber: String, 
+        onSuccess: () -> Unit
+    ) {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
-            authRepository.signUpWithEmail(email, password)
+            authRepository.signUpWithEmail(email, password, name, lastName, phone, idNumber)
+                .onSuccess { onSuccess() }
+                .onFailure { _error.value = it.message }
+            _isLoading.value = false
+        }
+    }
+
+    fun resetPassword(email: String, onSuccess: () -> Unit) {
+        if (email.isBlank()) {
+            _error.value = "Ingresa tu correo para recuperar la clave."
+            return
+        }
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            authRepository.sendPasswordResetEmail(email)
                 .onSuccess { onSuccess() }
                 .onFailure { _error.value = it.message }
             _isLoading.value = false

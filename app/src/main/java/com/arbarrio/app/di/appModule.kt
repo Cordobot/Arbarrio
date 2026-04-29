@@ -34,7 +34,7 @@ val appModule = module {
     single { get<AppDatabase>().propertyDao() }
 
     // Repositories
-    single<AuthRepository> { AuthRepositoryImpl(get()) }
+    single<AuthRepository> { AuthRepositoryImpl(get(), get()) }
     single<PropertyRepository> { PropertyRepositoryImpl(get()) }
     
     // ViewModels
@@ -42,4 +42,6 @@ val appModule = module {
     factory { HomeViewModel(get(), get()) }
     factory { AddPropertyViewModel(get(), get()) }
     factory { EditProfileViewModel(get()) }
+    factory { MyPropertiesViewModel(get(), get()) }
+    factory { FavoritesViewModel(get()) }
 }

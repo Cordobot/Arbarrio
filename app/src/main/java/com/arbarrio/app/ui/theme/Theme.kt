@@ -12,50 +12,38 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Indigo500,
-    secondary = Coral500,
+    primary = PrimaryPurple,
+    secondary = SecondaryPurple,
     tertiary = Indigo400,
-    background = Slate900,
-    surface = Slate800,
+    background = DarkBg,
+    surface = SurfaceBg,
     onPrimary = White,
     onSecondary = White,
     onTertiary = White,
     onBackground = White,
     onSurface = White,
     primaryContainer = Indigo800,
-    onPrimaryContainer = Indigo100
+    onPrimaryContainer = Indigo100,
+    errorContainer = ErrorRed,
+    onErrorContainer = ErrorText
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Indigo600,
-    secondary = Coral600,
-    tertiary = Indigo500,
-    background = Slate50,
-    surface = White,
-    onPrimary = White,
-    onSecondary = White,
-    onTertiary = White,
-    onBackground = Slate900,
-    onSurface = Slate900,
-    primaryContainer = Indigo100,
-    onPrimaryContainer = Indigo900
-)
+// Forcing Dark Mode style as requested ("same style for all app")
+private val LightColorScheme = DarkColorScheme.copy()
 
 @Composable
 fun ArbarrioTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = true, // Force dark theme for that premium look
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    val colorScheme = DarkColorScheme
+    
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.background.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
         }
     }
 

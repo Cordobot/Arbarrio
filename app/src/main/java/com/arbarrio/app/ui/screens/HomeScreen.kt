@@ -61,117 +61,110 @@ class HomeScreen : Screen {
         ModalNavigationDrawer(
             drawerState = drawerState,
             drawerContent = {
-                ModalDrawerSheet {
+                ModalDrawerSheet(
+                    drawerContainerColor = MaterialTheme.colorScheme.surface,
+                    drawerContentColor = MaterialTheme.colorScheme.onSurface
+                ) {
                     Spacer(Modifier.height(32.dp))
-                    // Header with name to the right and solid border
-                    Row(
+                    // Colorful Header
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .padding(horizontal = 24.dp, vertical = 24.dp)
+                            .background(
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                                RoundedCornerShape(24.dp)
+                            )
+                            .padding(16.dp)
                     ) {
-                        Surface(
-                            modifier = Modifier
-                                .size(72.dp)
-                                .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape),
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.primaryContainer
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = "User",
-                                modifier = Modifier.padding(12.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                        
-                        Spacer(Modifier.width(16.dp))
-                        
-                        Column {
-                            Text(
-                                text = user?.name ?: user?.email ?: "Usuario",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 20.sp,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Spacer(Modifier.height(4.dp))
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Surface(
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .border(3.dp, MaterialTheme.colorScheme.primary, CircleShape),
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.primary
+                            ) {
                                 Icon(
-                                    imageVector = Icons.Default.Star,
-                                    contentDescription = "Rating",
-                                    tint = Color(0xFFFFC107),
-                                    modifier = Modifier.size(16.dp)
+                                    imageVector = Icons.Default.Person,
+                                    contentDescription = "User",
+                                    modifier = Modifier.padding(12.dp),
+                                    tint = Color.White
                                 )
-                                Spacer(Modifier.width(4.dp))
+                            }
+                            
+                            Spacer(Modifier.width(16.dp))
+                            
+                            Column {
                                 Text(
-                                    text = "${user?.rating ?: 0.0}",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Medium,
+                                    text = user?.name ?: "Bienvenido",
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = 18.sp,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = user?.email ?: "Arbarrio User",
+                                    fontSize = 12.sp,
                                     color = MaterialTheme.colorScheme.secondary
                                 )
+                                Spacer(Modifier.height(4.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Star,
+                                        contentDescription = "Rating",
+                                        tint = Color(0xFFFFC107),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(Modifier.width(4.dp))
+                                    Text(
+                                        text = "${user?.rating ?: 0.0}",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.secondary
+                                    )
+                                }
                             }
                         }
                     }
                     
                     Spacer(Modifier.height(8.dp))
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 24.dp))
-                    Spacer(Modifier.height(16.dp))
+                    
+                    val menuItems = listOf(
+                        Triple("Inicio", Icons.Default.Home) { /* Already here */ },
+                        Triple("Mis Propiedades", Icons.Default.LocationOn) { navigator.push(MyPropertiesScreen()) },
+                        Triple("Favoritos", Icons.Default.FavoriteBorder) { navigator.push(FavoritesScreen()) },
+                        Triple("Editar Perfil", Icons.Default.Edit) { navigator.push(EditProfileScreen()) },
+                        Triple("Configuración", Icons.Default.Settings) { navigator.push(SettingsScreen()) }
+                    )
+
+                    menuItems.forEach { (label, icon, action) ->
+                        NavigationDrawerItem(
+                            label = { Text(label, fontWeight = FontWeight.SemiBold) },
+                            selected = label == "Inicio",
+                            onClick = { 
+                                scope.launch { drawerState.close() }
+                                action()
+                            },
+                            icon = { Icon(icon, null) },
+                            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
+                            colors = NavigationDrawerItemDefaults.colors(
+                                selectedContainerColor = Color(0xFF2196F3).copy(alpha = 0.2f),
+                                selectedIconColor = Color(0xFF2196F3),
+                                selectedTextColor = Color(0xFF2196F3),
+                                unselectedContainerColor = Color.Transparent
+                            )
+                        )
+                    }
+
+                    Spacer(Modifier.weight(1f))
                     
                     NavigationDrawerItem(
-                        label = { Text("Inicio") },
-                        selected = true,
-                        onClick = { scope.launch { drawerState.close() } },
-                        icon = { Icon(Icons.Default.Home, null) },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                    )
-                    NavigationDrawerItem(
-                        label = { Text("Mis Propiedades") },
-                        selected = false,
-                        onClick = { 
-                            scope.launch { drawerState.close() }
-                            navigator.push(MyPropertiesScreen())
-                        },
-                        icon = { Icon(Icons.Default.LocationOn, null) },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                    )
-                    NavigationDrawerItem(
-                        label = { Text("Favoritos") },
-                        selected = false,
-                        onClick = { 
-                            scope.launch { drawerState.close() }
-                            navigator.push(FavoritesScreen())
-                        },
-                        icon = { Icon(Icons.Default.FavoriteBorder, null) },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                    )
-                    NavigationDrawerItem(
-                        label = { Text("Editar Perfil") },
-                        selected = false,
-                        onClick = { 
-                            scope.launch { drawerState.close() }
-                            navigator.push(EditProfileScreen())
-                        },
-                        icon = { Icon(Icons.Default.Edit, null) },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                    )
-                    NavigationDrawerItem(
-                        label = { Text("Configuración") },
-                        selected = false,
-                        onClick = { 
-                            scope.launch { drawerState.close() }
-                            navigator.push(SettingsScreen())
-                        },
-                        icon = { Icon(Icons.Default.Settings, null) },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                    )
-                    Spacer(Modifier.weight(1f))
-                    NavigationDrawerItem(
-                        label = { Text("Cerrar Sesión") },
+                        label = { Text("Cerrar Sesión", color = MaterialTheme.colorScheme.error) },
                         selected = false,
                         onClick = { 
                             navigator.replaceAll(LoginScreen())
                         },
-                        icon = { Icon(Icons.AutoMirrored.Filled.ExitToApp, null) },
+                        icon = { Icon(Icons.AutoMirrored.Filled.ExitToApp, null, tint = MaterialTheme.colorScheme.error) },
                         modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                     )
                     Spacer(Modifier.height(16.dp))
@@ -182,15 +175,15 @@ class HomeScreen : Screen {
                 containerColor = Color.Transparent,
                 topBar = {
                     HomeTopBar(
-                        onMenuClick = { scope.launch { drawerState.open() } },
-                        user = user
+                        onMenuClick = { scope.launch { drawerState.open() } }
                     )
                 },
                 floatingActionButton = {
                     FloatingActionButton(
                         onClick = { navigator.push(AddPropertyScreen()) },
                         containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        shape = RoundedCornerShape(16.dp)
                     ) {
                         Icon(Icons.Default.Add, contentDescription = "Añadir Propiedad")
                     }
@@ -218,8 +211,8 @@ class HomeScreen : Screen {
                             item {
                                 Text(
                                     text = "Propiedades Cercanas",
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 22.sp,
+                                    fontWeight = FontWeight.ExtraBold,
                                     color = MaterialTheme.colorScheme.onBackground
                                 )
                             }
@@ -237,7 +230,7 @@ class HomeScreen : Screen {
     }
 
     @Composable
-    fun HomeTopBar(onMenuClick: () -> Unit, user: User?) {
+    fun HomeTopBar(onMenuClick: () -> Unit) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -247,30 +240,35 @@ class HomeScreen : Screen {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onMenuClick) {
+                IconButton(
+                    onClick = onMenuClick,
+                    modifier = Modifier.background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f), CircleShape)
+                ) {
                     Icon(
                         imageVector = Icons.Default.Menu,
                         contentDescription = "Menu",
                         tint = MaterialTheme.colorScheme.onBackground
                     )
                 }
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(12.dp))
                 Column {
                     Text(
                         text = "Ubicación",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.secondary
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontWeight = FontWeight.Medium
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.LocationOn,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(14.dp)
                         )
+                        Spacer(Modifier.width(4.dp))
                         Text(
                             text = "Córdoba, Argentina",
-                            fontSize = 16.sp,
+                            fontSize = 15.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -287,14 +285,14 @@ class HomeScreen : Screen {
             value = text,
             onValueChange = { text = it },
             placeholder = { Text("Buscar arriendos...") },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(20.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                 focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
                 unfocusedBorderColor = Color.Transparent,
                 focusedBorderColor = MaterialTheme.colorScheme.primary
             )
@@ -319,7 +317,11 @@ class HomeScreen : Screen {
                     selected = category == selectedCategory,
                     onClick = { onCategorySelected(category) },
                     label = { Text(category) },
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                        selectedLabelColor = Color.White
+                    )
                 )
             }
         }
@@ -331,9 +333,9 @@ class HomeScreen : Screen {
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { onDetailClick(property) },
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
             Column {
                 Box {
@@ -342,16 +344,16 @@ class HomeScreen : Screen {
                         contentDescription = property.title,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(200.dp)
-                            .clip(RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp)),
+                            .height(220.dp)
+                            .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)),
                         contentScale = ContentScale.Crop
                     )
                     IconButton(
                         onClick = { /* Toggle favorite */ },
                         modifier = Modifier
                             .align(Alignment.TopEnd)
-                            .padding(8.dp)
-                            .background(Color.White.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                            .padding(12.dp)
+                            .background(Color.White.copy(alpha = 0.8f), CircleShape)
                     ) {
                         Icon(
                             imageVector = Icons.Default.FavoriteBorder,
@@ -359,9 +361,25 @@ class HomeScreen : Screen {
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
+                    
+                    Surface(
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(16.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = property.category,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
                 }
                 
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(20.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -369,48 +387,50 @@ class HomeScreen : Screen {
                     ) {
                         Text(
                             text = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-CO")).format(property.price),
-                            fontSize = 20.sp,
+                            fontSize = 22.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
                             text = "/ mes",
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                    }
-                    
-                    Spacer(modifier = Modifier.height(4.dp))
-                    
-                    Text(
-                        text = property.title,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1
-                    )
-                    
-                    Spacer(modifier = Modifier.height(4.dp))
-                    
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = null,
-                            tint = Color.Gray,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Text(
-                            text = property.location,
-                            fontSize = 14.sp,
-                            color = Color.Gray
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.secondary,
+                            fontWeight = FontWeight.Medium
                         )
                     }
                     
                     Spacer(modifier = Modifier.height(8.dp))
                     
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        PropertyInfoItem(text = "${property.bedrooms} Hab")
-                        PropertyInfoItem(text = "${property.bathrooms} Baños")
-                        PropertyInfoItem(text = "${property.area} m²")
+                    Text(
+                        text = property.title,
+                        fontSize = 19.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1
+                    )
+                    
+                    Spacer(modifier = Modifier.height(6.dp))
+                    
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            text = property.location,
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        PropertyInfoItem(text = "${property.bedrooms} Hab", icon = Icons.Default.Home)
+                        PropertyInfoItem(text = "${property.bathrooms} Baños", icon = Icons.Default.Person) // Placeholder icon
+                        PropertyInfoItem(text = "${property.area} m²", icon = Icons.Default.LocationOn) // Placeholder
                     }
                 }
             }
@@ -418,17 +438,23 @@ class HomeScreen : Screen {
     }
 
     @Composable
-    fun PropertyInfoItem(text: String) {
+    fun PropertyInfoItem(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
         Surface(
-            color = MaterialTheme.colorScheme.surfaceVariant,
-            shape = RoundedCornerShape(8.dp)
+            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+            shape = RoundedCornerShape(12.dp)
         ) {
-            Text(
-                text = text,
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Row(
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                Icon(icon, null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = text,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
         }
     }
 }

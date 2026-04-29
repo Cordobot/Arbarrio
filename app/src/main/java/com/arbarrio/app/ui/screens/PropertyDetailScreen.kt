@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Phone
@@ -42,7 +43,7 @@ data class PropertyDetailScreen(val property: Property) : Screen {
         val scrollState = rememberScrollState()
         val context = LocalContext.current
 
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -70,10 +71,11 @@ data class PropertyDetailScreen(val property: Property) : Screen {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = property.category,
+                            text = property.category.uppercase(),
                             color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 12.sp,
+                            letterSpacing = 1.sp
                         )
                         Text(
                             text = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-CO")).format(property.price),
@@ -83,13 +85,14 @@ data class PropertyDetailScreen(val property: Property) : Screen {
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
                     Text(
                         text = property.title,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
-                        lineHeight = 34.sp
+                        lineHeight = 34.sp,
+                        color = Color.White
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -99,8 +102,9 @@ data class PropertyDetailScreen(val property: Property) : Screen {
                             imageVector = Icons.Default.LocationOn,
                             contentDescription = null,
                             tint = Color.Gray,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(18.dp)
                         )
+                        Spacer(Modifier.width(6.dp))
                         Text(
                             text = property.location,
                             fontSize = 16.sp,
@@ -108,7 +112,7 @@ data class PropertyDetailScreen(val property: Property) : Screen {
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
 
                     // Key Features Row
                     Row(
@@ -120,42 +124,48 @@ data class PropertyDetailScreen(val property: Property) : Screen {
                         FeatureItem(label = "Área", value = "${property.area} m²")
                     }
 
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(40.dp))
 
                     Text(
                         text = "Descripción",
                         fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
                     Text(
-                        text = property.description,
+                        text = property.description.ifBlank { "Sin descripción disponible." },
                         fontSize = 16.sp,
                         color = Color.Gray,
                         lineHeight = 24.sp
                     )
 
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(40.dp))
 
                     // Google Maps Section
                     Text(
-                        text = "Ubicación",
+                        text = "Ubicación en el mapa",
                         fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
                     )
                     
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
                     
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(250.dp)
-                            .clip(RoundedCornerShape(20.dp))
+                            .clip(RoundedCornerShape(24.dp))
                             .background(MaterialTheme.colorScheme.surfaceVariant)
                     ) {
-                        val propertyLatLng = LatLng(property.latitude, property.longitude)
+                        // Ensure latitude and longitude have safe defaults to prevent crash
+                        val lat = if (property.latitude != 0.0) property.latitude else 6.2442
+                        val lng = if (property.longitude != 0.0) property.longitude else -75.5812
+                        val propertyLatLng = LatLng(lat, lng)
+                        
                         val cameraPositionState = rememberCameraPositionState {
                             position = CameraPosition.fromLatLngZoom(propertyLatLng, 15f)
                         }
@@ -173,7 +183,7 @@ data class PropertyDetailScreen(val property: Property) : Screen {
                         }
                     }
                     
-                    Spacer(modifier = Modifier.height(120.dp)) // Padding for floating button
+                    Spacer(modifier = Modifier.height(140.dp)) // Padding for floating button
                 }
             }
 
@@ -181,22 +191,27 @@ data class PropertyDetailScreen(val property: Property) : Screen {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .statusBarsPadding()
                     .padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 IconButton(
                     onClick = { navigator.pop() },
                     modifier = Modifier
-                        .background(Color.White.copy(alpha = 0.8f), CircleShape)
+                        .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
                 }
                 IconButton(
                     onClick = { /* Toggle favorite */ },
                     modifier = Modifier
-                        .background(Color.White.copy(alpha = 0.8f), CircleShape)
+                        .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                 ) {
-                    Icon(Icons.Default.FavoriteBorder, contentDescription = "Favorite", tint = MaterialTheme.colorScheme.primary)
+                    Icon(
+                        imageVector = if (property.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder, 
+                        contentDescription = "Favorite", 
+                        tint = if (property.isFavorite) Color.Red else Color.White
+                    )
                 }
             }
 
@@ -205,8 +220,8 @@ data class PropertyDetailScreen(val property: Property) : Screen {
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth(),
-                shadowElevation = 8.dp,
-                color = MaterialTheme.colorScheme.surface
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+                tonalElevation = 8.dp
             ) {
                 Row(
                     modifier = Modifier
@@ -225,15 +240,15 @@ data class PropertyDetailScreen(val property: Property) : Screen {
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp),
-                        shape = RoundedCornerShape(16.dp),
+                            .height(60.dp),
+                        shape = RoundedCornerShape(18.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary
                         )
                     ) {
                         Icon(Icons.Default.Phone, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Contactar al Arrendador", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.width(12.dp))
+                        Text("Contactar al Arrendador", fontSize = 17.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -244,21 +259,24 @@ data class PropertyDetailScreen(val property: Property) : Screen {
     fun FeatureItem(label: String, value: String) {
         Column(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(20.dp))
+                .border(1.dp, Color.Gray.copy(alpha = 0.1f), RoundedCornerShape(20.dp))
                 .padding(16.dp)
-                .width(80.dp),
+                .width(90.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = value,
-                fontSize = 18.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
+            Spacer(Modifier.height(4.dp))
             Text(
                 text = label,
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.secondary
+                fontSize = 12.sp,
+                color = Color.Gray,
+                fontWeight = FontWeight.Medium
             )
         }
     }

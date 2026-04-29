@@ -17,6 +17,7 @@ class PreferencesManager(private val context: Context) {
     companion object {
         val REMEMBER_ME_KEY = booleanPreferencesKey("remember_me")
         val SAVED_EMAIL_KEY = stringPreferencesKey("saved_email")
+        val BIOMETRIC_ENABLED_KEY = booleanPreferencesKey("biometric_enabled")
     }
 
     val isRememberMeEnabled: Flow<Boolean> = context.dataStore.data.map { preferences ->
@@ -27,6 +28,10 @@ class PreferencesManager(private val context: Context) {
         preferences[SAVED_EMAIL_KEY] ?: ""
     }
 
+    val isBiometricEnabled: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[BIOMETRIC_ENABLED_KEY] ?: false
+    }
+
     suspend fun saveRememberMeSettings(enabled: Boolean, email: String) {
         context.dataStore.edit { preferences ->
             preferences[REMEMBER_ME_KEY] = enabled
@@ -35,6 +40,12 @@ class PreferencesManager(private val context: Context) {
             } else {
                 preferences.remove(SAVED_EMAIL_KEY)
             }
+        }
+    }
+
+    suspend fun saveBiometricSetting(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[BIOMETRIC_ENABLED_KEY] = enabled
         }
     }
 }

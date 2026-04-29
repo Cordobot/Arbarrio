@@ -17,11 +17,21 @@ class EditProfileViewModel(
     private val _error = MutableStateFlow<String?>(null)
     val error = _error.asStateFlow()
 
-    fun updateProfile(name: String, phone: String, onSuccess: () -> Unit) {
+    fun updateProfile(
+        name: String, 
+        lastName: String, 
+        phone: String, 
+        idNumber: String, 
+        age: String, 
+        onSuccess: () -> Unit
+    ) {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
-            authRepository.updateProfile(name, phone)
+            
+            val ageInt = age.toIntOrNull()
+            
+            authRepository.updateProfile(name, lastName, phone, idNumber, ageInt)
                 .onSuccess { onSuccess() }
                 .onFailure { _error.value = it.message }
             _isLoading.value = false
