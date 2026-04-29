@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.arbarrio.app.ui.components.AnimatedBackground
 
 class FavoritesScreen : Screen {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -21,6 +22,7 @@ class FavoritesScreen : Screen {
         val navigator = LocalNavigator.currentOrThrow
 
         Scaffold(
+            containerColor = androidx.compose.ui.graphics.Color.Transparent,
             topBar = {
                 TopAppBar(
                     title = { Text("Favoritos") },
@@ -32,14 +34,15 @@ class FavoritesScreen : Screen {
                 )
             }
         ) { padding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+            AnimatedBackground {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                 Text(
                     text = "Tus propiedades favoritas",
                     fontSize = 20.sp,
@@ -52,6 +55,7 @@ class FavoritesScreen : Screen {
                     fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.secondary
                 )
+                }
             }
         }
     }

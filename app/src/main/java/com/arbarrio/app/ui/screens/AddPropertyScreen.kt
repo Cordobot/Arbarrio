@@ -11,10 +11,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import org.koin.androidx.compose.koinViewModel
+import com.arbarrio.app.ui.components.AnimatedBackground
 
 class AddPropertyScreen : Screen {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -37,6 +39,7 @@ class AddPropertyScreen : Screen {
         val error by viewModel.error.collectAsState()
 
         Scaffold(
+            containerColor = Color.Transparent,
             topBar = {
                 TopAppBar(
                     title = { Text("Publicar Propiedad") },
@@ -48,14 +51,15 @@ class AddPropertyScreen : Screen {
                 )
             }
         ) { padding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(16.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
+            AnimatedBackground {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .padding(16.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
                 if (error != null) {
                     Text(text = error!!, color = MaterialTheme.colorScheme.error)
                 }
@@ -184,6 +188,7 @@ class AddPropertyScreen : Screen {
                     } else {
                         Text("Publicar")
                     }
+                }
                 }
             }
         }

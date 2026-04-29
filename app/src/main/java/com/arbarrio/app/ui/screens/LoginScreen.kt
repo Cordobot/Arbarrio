@@ -19,6 +19,8 @@ import org.koin.androidx.compose.koinViewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 
+import com.arbarrio.app.ui.components.AnimatedBackground
+
 class LoginScreen : Screen {
     @Composable
     override fun Content() {
@@ -43,14 +45,14 @@ class LoginScreen : Screen {
         val isLoading by viewModel.isLoading.collectAsState()
         val error by viewModel.error.collectAsState()
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        AnimatedBackground {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
             // Logo Section
             Surface(
                 modifier = Modifier.size(80.dp),
@@ -202,6 +204,7 @@ class LoginScreen : Screen {
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text("Facebook", color = MaterialTheme.colorScheme.onBackground)
+                }
                 }
             }
         }

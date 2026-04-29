@@ -41,6 +41,8 @@ import java.util.*
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 
+import com.arbarrio.app.ui.components.AnimatedBackground
+
 class HomeScreen : Screen {
     @Composable
     override fun Content() {
@@ -165,6 +167,7 @@ class HomeScreen : Screen {
             }
         ) {
             Scaffold(
+                containerColor = Color.Transparent,
                 topBar = {
                     HomeTopBar(
                         onMenuClick = { scope.launch { drawerState.open() } },
@@ -181,42 +184,43 @@ class HomeScreen : Screen {
                     }
                 }
             ) { padding ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                        .background(MaterialTheme.colorScheme.background)
-                ) {
-                SearchBar()
-                
-                CategorySection(
-                    categories = categories,
-                    selectedCategory = selectedCategory,
-                    onCategorySelected = { viewModel.selectCategory(it) }
-                )
+                AnimatedBackground {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(padding)
+                    ) {
+                        SearchBar()
+                        
+                        CategorySection(
+                            categories = categories,
+                            selectedCategory = selectedCategory,
+                            onCategorySelected = { viewModel.selectCategory(it) }
+                        )
 
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    item {
-                        Text(
-                            text = "Propiedades Cercanas",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-                    items(properties) { property ->
-                        PropertyCard(
-                            property = property,
-                            onDetailClick = { navigator.push(PropertyDetailScreen(it)) }
-                        )
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            item {
+                                Text(
+                                    text = "Propiedades Cercanas",
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                            }
+                            items(properties) { property ->
+                                PropertyCard(
+                                    property = property,
+                                    onDetailClick = { navigator.push(PropertyDetailScreen(it)) }
+                                )
+                            }
+                        }
                     }
                 }
             }
-        }
         }
     }
 
