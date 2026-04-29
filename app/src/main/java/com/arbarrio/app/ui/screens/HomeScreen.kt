@@ -1,11 +1,13 @@
 package com.arbarrio.app.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -60,25 +62,36 @@ class HomeScreen : Screen {
             drawerState = drawerState,
             drawerContent = {
                 ModalDrawerSheet {
-                    Spacer(Modifier.height(16.dp))
-                    Box(
+                    Spacer(Modifier.height(32.dp))
+                    // Header with name to the right and solid border
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
-                        contentAlignment = Alignment.CenterStart
+                            .padding(horizontal = 24.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column {
+                        Surface(
+                            modifier = Modifier
+                                .size(72.dp)
+                                .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape),
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primaryContainer
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.Person,
                                 contentDescription = "User",
-                                modifier = Modifier.size(64.dp),
+                                modifier = Modifier.padding(12.dp),
                                 tint = MaterialTheme.colorScheme.primary
                             )
-                            Spacer(Modifier.height(8.dp))
+                        }
+                        
+                        Spacer(Modifier.width(16.dp))
+                        
+                        Column {
                             Text(
                                 text = user?.name ?: user?.email ?: "Usuario",
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp,
+                                fontSize = 20.sp,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Spacer(Modifier.height(4.dp))
@@ -91,20 +104,19 @@ class HomeScreen : Screen {
                                 )
                                 Spacer(Modifier.width(4.dp))
                                 Text(
-                                    text = "${user?.rating ?: 0.0} (${user?.reviewCount ?: 0})",
+                                    text = "${user?.rating ?: 0.0}",
                                     fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium,
                                     color = MaterialTheme.colorScheme.secondary
                                 )
                             }
-                            Spacer(Modifier.height(4.dp))
-                            Text(
-                                text = user?.email ?: "",
-                                color = MaterialTheme.colorScheme.secondary,
-                                fontSize = 14.sp
-                            )
                         }
                     }
-                    HorizontalDivider()
+                    
+                    Spacer(Modifier.height(8.dp))
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 24.dp))
+                    Spacer(Modifier.height(16.dp))
+                    
                     NavigationDrawerItem(
                         label = { Text("Inicio") },
                         selected = true,
@@ -211,7 +223,7 @@ class HomeScreen : Screen {
                                     color = MaterialTheme.colorScheme.onBackground
                                 )
                             }
-                            items(properties) { property ->
+                            items(properties, key = { it.id }) { property ->
                                 PropertyCard(
                                     property = property,
                                     onDetailClick = { navigator.push(PropertyDetailScreen(it)) }
