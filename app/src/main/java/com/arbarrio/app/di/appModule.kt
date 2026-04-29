@@ -8,11 +8,8 @@ import com.arbarrio.app.domain.repository.AuthRepository
 import com.google.firebase.firestore.FirebaseFirestore
 import com.arbarrio.app.data.repository.PropertyRepositoryImpl
 import com.arbarrio.app.domain.repository.PropertyRepository
-import com.arbarrio.app.ui.screens.AuthViewModel
-import com.arbarrio.app.ui.screens.HomeViewModel
-import com.arbarrio.app.ui.screens.AddPropertyViewModel
+import com.arbarrio.app.ui.screens.*
 import org.koin.dsl.module
-
 import org.koin.android.ext.koin.androidContext
 import com.arbarrio.app.data.local.PreferencesManager
 
@@ -44,6 +41,5 @@ val appModule = module {
     factory { AuthViewModel(get(), get()) }
     factory { HomeViewModel(get(), get()) }
     factory { AddPropertyViewModel(get(), get()) }
-    
-    // UseCases
+    factory { EditProfileViewModel(get()) }
 }

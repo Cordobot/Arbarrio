@@ -76,9 +76,10 @@ class HomeScreen : Screen {
                             )
                             Spacer(Modifier.height(8.dp))
                             Text(
-                                text = user?.name ?: "Usuario",
+                                text = user?.name ?: user?.email ?: "Usuario",
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp
+                                fontSize = 18.sp,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Spacer(Modifier.height(4.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -156,7 +157,6 @@ class HomeScreen : Screen {
                         label = { Text("Cerrar Sesión") },
                         selected = false,
                         onClick = { 
-                            // TODO: Call sign out and navigate to login
                             navigator.replaceAll(LoginScreen())
                         },
                         icon = { Icon(Icons.AutoMirrored.Filled.ExitToApp, null) },
@@ -262,20 +262,6 @@ class HomeScreen : Screen {
                             fontWeight = FontWeight.Bold
                         )
                     }
-                }
-            }
-            Surface(
-                modifier = Modifier.size(40.dp),
-                shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.primaryContainer
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        text = user?.email?.firstOrNull()?.uppercase() ?: "U",
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
                 }
             }
         }

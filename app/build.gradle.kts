@@ -75,6 +75,10 @@ dependencies {
     // Coil
     implementation(libs.coil.compose)
     
+    // Maps
+    implementation(libs.maps.compose)
+    implementation(libs.play.services.maps)
+    
     // DataStore
     implementation("androidx.datastore:datastore-preferences:1.1.1")
     testImplementation(libs.junit)

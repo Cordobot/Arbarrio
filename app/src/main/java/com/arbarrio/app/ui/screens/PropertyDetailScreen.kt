@@ -29,6 +29,9 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import coil.compose.AsyncImage
 import com.arbarrio.app.domain.model.Property
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.*
 import java.text.NumberFormat
 import java.util.*
 
@@ -46,7 +49,7 @@ data class PropertyDetailScreen(val property: Property) : Screen {
                     .verticalScroll(scrollState)
             ) {
                 // Header Image
-                Box(modifier = Modifier.height(400.dp)) {
+                Box(modifier = Modifier.height(350.dp)) {
                     AsyncImage(
                         model = property.imageUrl,
                         contentDescription = property.title,
@@ -133,8 +136,44 @@ data class PropertyDetailScreen(val property: Property) : Screen {
                         color = Color.Gray,
                         lineHeight = 24.sp
                     )
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    // Google Maps Section
+                    Text(
+                        text = "Ubicación",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                     
-                    Spacer(modifier = Modifier.height(100.dp)) // Padding for floating button
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(250.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                    ) {
+                        val propertyLatLng = LatLng(property.latitude, property.longitude)
+                        val cameraPositionState = rememberCameraPositionState {
+                            position = CameraPosition.fromLatLngZoom(propertyLatLng, 15f)
+                        }
+                        
+                        GoogleMap(
+                            modifier = Modifier.fillMaxSize(),
+                            cameraPositionState = cameraPositionState,
+                            uiSettings = MapUiSettings(zoomControlsEnabled = false)
+                        ) {
+                            Marker(
+                                state = MarkerState(position = propertyLatLng),
+                                title = property.title,
+                                snippet = property.location
+                            )
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(120.dp)) // Padding for floating button
                 }
             }
 

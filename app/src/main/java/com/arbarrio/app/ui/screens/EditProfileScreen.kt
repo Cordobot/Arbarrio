@@ -24,18 +24,19 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.arbarrio.app.ui.components.AnimatedBackground
-import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 class EditProfileScreen : Screen {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        val scope = rememberCoroutineScope()
+        val viewModel = koinViewModel<EditProfileViewModel>()
         
         var name by remember { mutableStateOf("") }
         var phone by remember { mutableStateOf("") }
-        var isSaving by remember { mutableStateOf(false) }
+        val isLoading by viewModel.isLoading.collectAsState()
+        val error by viewModel.error.collectAsState()
 
         Scaffold(
             containerColor = Color.Transparent,
@@ -101,6 +102,10 @@ class EditProfileScreen : Screen {
                         modifier = Modifier.padding(horizontal = 24.dp)
                     )
 
+                    if (error != null) {
+                        Text(text = error!!, color = MaterialTheme.colorScheme.error)
+                    }
+
                     // Form
                     OutlinedTextField(
                         value = name,
@@ -124,11 +129,7 @@ class EditProfileScreen : Screen {
 
                     Button(
                         onClick = {
-                            // TODO: Save to Firebase
-                            isSaving = true
-                            scope.launch {
-                                kotlinx.coroutines.delay(1000) // Simulate network
-                                isSaving = false
+                            viewModel.updateProfile(name, phone) {
                                 navigator.pop()
                             }
                         },
@@ -136,9 +137,9 @@ class EditProfileScreen : Screen {
                             .fillMaxWidth()
                             .height(56.dp),
                         shape = RoundedCornerShape(16.dp),
-                        enabled = !isSaving
+                        enabled = !isLoading && name.isNotBlank()
                     ) {
-                        if (isSaving) {
+                        if (isLoading) {
                             CircularProgressIndicator(
                                 color = MaterialTheme.colorScheme.onPrimary,
                                 modifier = Modifier.size(24.dp)
