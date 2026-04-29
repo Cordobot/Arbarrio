@@ -1,5 +1,7 @@
 package com.arbarrio.app.ui.screens
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -7,9 +9,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,6 +37,7 @@ data class PropertyDetailScreen(val property: Property) : Screen {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val scrollState = rememberScrollState()
+        val context = LocalContext.current
 
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
@@ -68,7 +73,7 @@ data class PropertyDetailScreen(val property: Property) : Screen {
                             fontSize = 14.sp
                         )
                         Text(
-                            text = NumberFormat.getCurrencyInstance(Locale("es", "AR")).format(property.price),
+                            text = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-CO")).format(property.price),
                             fontSize = 24.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = MaterialTheme.colorScheme.primary
@@ -145,7 +150,7 @@ data class PropertyDetailScreen(val property: Property) : Screen {
                     modifier = Modifier
                         .background(Color.White.copy(alpha = 0.8f), CircleShape)
                 ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                 }
                 IconButton(
                     onClick = { /* Toggle favorite */ },
@@ -171,13 +176,25 @@ data class PropertyDetailScreen(val property: Property) : Screen {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Button(
-                        onClick = { /* Contact logic */ },
+                        onClick = { 
+                            property.ownerPhone?.let { phone ->
+                                if (phone.isNotBlank()) {
+                                    val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone"))
+                                    context.startActivity(intent)
+                                }
+                            }
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
                     ) {
-                        Text("Contactar al Arrendador", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Icon(Icons.Default.Phone, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Contactar al Arrendador", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }

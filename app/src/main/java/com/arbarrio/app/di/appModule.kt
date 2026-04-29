@@ -43,7 +43,7 @@ val appModule = module {
     // ViewModels
     factory { AuthViewModel(get(), get()) }
     factory { HomeViewModel(get(), get()) }
-    factory { AddPropertyViewModel(get()) }
+    factory { AddPropertyViewModel(get(), get()) }
     
     // UseCases
 }

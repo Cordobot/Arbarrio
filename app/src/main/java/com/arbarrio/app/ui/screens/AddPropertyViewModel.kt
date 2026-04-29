@@ -4,13 +4,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.arbarrio.app.domain.model.Property
 import com.arbarrio.app.domain.repository.PropertyRepository
+import com.arbarrio.app.domain.repository.AuthRepository
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.UUID
 
 class AddPropertyViewModel(
-    private val propertyRepository: PropertyRepository
+    private val propertyRepository: PropertyRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
@@ -49,6 +52,8 @@ class AddPropertyViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
+            
+            val user = authRepository.currentUser.firstOrNull()
 
             val property = Property(
                 id = UUID.randomUUID().toString(),
@@ -60,7 +65,8 @@ class AddPropertyViewModel(
                 category = category,
                 bedrooms = bedroomsInt,
                 bathrooms = bathroomsInt,
-                area = areaInt
+                area = areaInt,
+                ownerPhone = user?.phone ?: ""
             )
 
             val result = propertyRepository.addProperty(property)

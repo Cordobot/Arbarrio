@@ -11,5 +11,6 @@ data class Property(
     val bedrooms: Int,
     val bathrooms: Int,
     val area: Int,
+    val ownerPhone: String? = null,
     val isFavorite: Boolean = false
 )
