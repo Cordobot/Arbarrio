@@ -10,7 +10,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.koin.koinScreenModel
+import org.koin.androidx.compose.koinViewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 
@@ -18,7 +18,7 @@ class LoginScreen : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        val viewModel = koinScreenModel<AuthViewModel>()
+        val viewModel = koinViewModel<AuthViewModel>()
         
         var email by remember { mutableStateOf("") }
         var password by remember { mutableStateOf("") }
@@ -73,6 +73,7 @@ class LoginScreen : Screen {
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
+            val loading = isLoading
             Button(
                 onClick = { 
                     viewModel.signIn(email, password) {
@@ -80,9 +81,9 @@ class LoginScreen : Screen {
                     }
                 },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
-                enabled = !isLoading && email.isNotEmpty() && password.isNotEmpty()
+                enabled = (loading == false) && email.isNotBlank() && password.isNotBlank()
             ) {
-                if (isLoading) {
+                if (loading) {
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary)
                 } else {
                     Text("Ingresar")
@@ -94,7 +95,8 @@ class LoginScreen : Screen {
                     viewModel.signUp(email, password) {
                         navigator.replaceAll(HomeScreen())
                     }
-                }
+                },
+                enabled = (loading == false) && email.isNotBlank() && password.isNotBlank()
             ) {
                 Text("¿No tienes cuenta? Regístrate")
             }

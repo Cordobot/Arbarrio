@@ -8,6 +8,8 @@ import com.arbarrio.app.domain.repository.AuthRepository
 import com.google.firebase.firestore.FirebaseFirestore
 import com.arbarrio.app.data.repository.PropertyRepositoryImpl
 import com.arbarrio.app.domain.repository.PropertyRepository
+import com.arbarrio.app.ui.screens.AuthViewModel
+import com.arbarrio.app.ui.screens.HomeViewModel
 import org.koin.dsl.module
 
 val appModule = module {

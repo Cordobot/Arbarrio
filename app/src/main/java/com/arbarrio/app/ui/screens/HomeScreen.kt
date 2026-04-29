@@ -22,16 +22,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.koin.koinScreenModel
+import org.koin.androidx.compose.koinViewModel
 import coil.compose.AsyncImage
 import com.arbarrio.app.domain.model.Property
 import java.text.NumberFormat
 import java.util.*
 
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
+
 class HomeScreen : Screen {
     @Composable
     override fun Content() {
-        val viewModel = koinScreenModel<HomeViewModel>()
+        val navigator = LocalNavigator.currentOrThrow
+        val viewModel = koinViewModel<HomeViewModel>()
         val properties by viewModel.properties.collectAsState()
         val categories by viewModel.categories.collectAsState()
         val selectedCategory by viewModel.selectedCategory.collectAsState()
@@ -131,8 +135,9 @@ class HomeScreen : Screen {
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
             shape = RoundedCornerShape(16.dp),
-            colors = TextFieldDefaults.outlinedTextFieldColors(
-                containerColor = MaterialTheme.colorScheme.surface,
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
                 unfocusedBorderColor = Color.Transparent,
                 focusedBorderColor = MaterialTheme.colorScheme.primary
             )

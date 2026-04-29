@@ -12,11 +12,11 @@ interface PropertyDao {
     fun getAllProperties(): Flow<List<PropertyEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertProperties(properties: List<PropertyEntity>)
+    fun insertProperties(properties: List<PropertyEntity>)
 
     @Query("SELECT * FROM properties WHERE id = :id")
-    suspend fun getPropertyById(id: String): PropertyEntity?
+    fun getPropertyById(id: String): PropertyEntity?
 
     @Query("DELETE FROM properties")
-    suspend fun clearAll()
+    fun clearAll()
 }
