@@ -35,4 +35,4 @@ La aplicación sigue los principios de **Clean Architecture**, dividida en capas
 4. Asegúrate de habilitar **Authentication** (Email/Password) y **Firestore Database** en tu consola de Firebase.
 
 ---
-Desarrollado con ❤️ para facilitar el acceso a la vivienda.
+© 2026 Adrián Alvarez. Todos los derechos reservados.
