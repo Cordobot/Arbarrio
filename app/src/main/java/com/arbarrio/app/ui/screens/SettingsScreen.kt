@@ -6,7 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,9 +20,13 @@ import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import com.arbarrio.app.ui.components.AnimatedBackground
+import com.arbarrio.app.ui.theme.DarkBg
 import com.arbarrio.app.data.local.PreferencesManager
 import kotlinx.coroutines.launch
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
+import com.arbarrio.app.R
+import androidx.compose.ui.res.stringResource
 import org.koin.compose.koinInject
 
 class SettingsScreen : Screen {
@@ -39,7 +43,7 @@ class SettingsScreen : Screen {
             containerColor = Color.Transparent,
             topBar = {
                 TopAppBar(
-                    title = { Text("Configuración", color = Color.White, fontWeight = FontWeight.Bold) },
+                    title = { Text(stringResource(R.string.settings_title), color = Color.White, fontWeight = FontWeight.Bold) },
                     navigationIcon = {
                         IconButton(onClick = { navigator.pop() }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color.White)
@@ -49,17 +53,20 @@ class SettingsScreen : Screen {
                 )
             }
         ) { padding ->
-            AnimatedBackground {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = DarkBg
+            ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(padding)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    SettingsGroup(title = "Seguridad") {
+                    SettingsGroup(title = stringResource(R.string.security_section)) {
                         SettingsToggleItem(
-                            title = "Ingreso con Biometría", 
-                            subtitle = "Usa tu huella o FaceID para entrar",
+                            title = stringResource(R.string.biometric_label), 
+                            subtitle = stringResource(R.string.biometric_desc),
                             checked = isBiometricEnabled,
                             onCheckedChange = { 
                                 scope.launch {
@@ -69,7 +76,7 @@ class SettingsScreen : Screen {
                         )
                     }
 
-                    SettingsGroup(title = "Notificaciones") {
+                    SettingsGroup(title = stringResource(R.string.notifications_section)) {
                         SettingsToggleItem(title = "Nuevos Mensajes", checked = true, onCheckedChange = {})
                         SettingsToggleItem(title = "Alertas de Propiedades", checked = true, onCheckedChange = {})
                     }
@@ -79,9 +86,77 @@ class SettingsScreen : Screen {
                         SettingsItem(title = "Bloquear usuarios", icon = Icons.Default.Block)
                     }
                     
-                    SettingsGroup(title = "App") {
-                        SettingsItem(title = "Idioma", icon = Icons.Default.Language, value = "Español")
-                        SettingsItem(title = "Modo Oscuro", icon = Icons.Default.DarkMode, value = "Sistema")
+                    SettingsGroup(title = stringResource(R.string.app_section)) {
+                        var showLanguageDialog by remember { mutableStateOf(false) }
+                        var showThemeDialog by remember { mutableStateOf(false) }
+                        val currentLangCode by preferencesManager.language.collectAsState(initial = "es")
+                        val languages = listOf("Español" to "es", "English" to "en")
+                        val selectedLanguage = languages.firstOrNull { it.second == currentLangCode }?.first ?: "Español"
+                        var selectedTheme by remember { mutableStateOf("Sistema") }
+
+                        SettingsItem(
+                            title = stringResource(R.string.language_label), 
+                            icon = Icons.Default.Language, 
+                            value = selectedLanguage,
+                            onClick = { showLanguageDialog = true }
+                        )
+                        SettingsItem(
+                            title = "Modo Oscuro", 
+                            icon = Icons.Default.DarkMode, 
+                            value = selectedTheme,
+                            onClick = { showThemeDialog = true }
+                        )
+
+                        if (showLanguageDialog) {
+                            AlertDialog(
+                                onDismissRequest = { showLanguageDialog = false },
+                                title = { Text("Seleccionar Idioma") },
+                                text = {
+                                    Column {
+                                        languages.forEach { (name, code) ->
+                                            TextButton(
+                                                onClick = { 
+                                                    scope.launch {
+                                                        preferencesManager.saveLanguage(code)
+                                                        AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(code))
+                                                    }
+                                                    showLanguageDialog = false 
+                                                },
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                Text(name, color = if (currentLangCode == code) Color(0xFF7C7CFF) else Color.White)
+                                            }
+                                        }
+                                    }
+                                },
+                                confirmButton = {},
+                                containerColor = Color(0xFF1B1B1F)
+                            )
+                        }
+
+                        if (showThemeDialog) {
+                            AlertDialog(
+                                onDismissRequest = { showThemeDialog = false },
+                                title = { Text("Seleccionar Tema") },
+                                text = {
+                                    Column {
+                                        listOf("Sistema", "Claro", "Oscuro").forEach { theme ->
+                                            TextButton(
+                                                onClick = { 
+                                                    selectedTheme = theme
+                                                    showThemeDialog = false 
+                                                },
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                Text(theme, color = if (selectedTheme == theme) Color(0xFF7C7CFF) else Color.White)
+                                            }
+                                        }
+                                    }
+                                },
+                                confirmButton = {},
+                                containerColor = Color(0xFF1B1B1F)
+                            )
+                        }
                     }
                     
                     SettingsGroup(title = "Acerca de") {
@@ -119,9 +194,9 @@ class SettingsScreen : Screen {
     }
 
     @Composable
-    fun SettingsItem(title: String, icon: ImageVector, value: String? = null) {
+    fun SettingsItem(title: String, icon: ImageVector, value: String? = null, onClick: () -> Unit = {}) {
         Surface(
-            onClick = { /* Implement action */ },
+            onClick = onClick,
             color = Color.Transparent
         ) {
             Row(

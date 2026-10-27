@@ -26,8 +26,14 @@ class FavoritesViewModel(
             _isLoading.value = true
             propertyRepository.getProperties().collect { allProperties ->
                 _properties.value = allProperties.filter { it.isFavorite }
+                _isLoading.value = false
             }
-            _isLoading.value = false
+        }
+    }
+
+    fun toggleFavorite(propertyId: String) {
+        viewModelScope.launch {
+            propertyRepository.toggleFavorite(propertyId)
         }
     }
 }

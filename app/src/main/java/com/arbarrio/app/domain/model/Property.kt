@@ -1,5 +1,7 @@
 package com.arbarrio.app.domain.model
 
+import java.io.Serializable
+
 data class Property(
     val id: String = "",
     val title: String = "",
@@ -15,4 +17,4 @@ data class Property(
     val isFavorite: Boolean = false,
     val latitude: Double = 6.2442, // Default to Medellin/Cordoba approximate
     val longitude: Double = -75.5812
-)
+) : Serializable

@@ -23,4 +23,6 @@ interface AuthRepository {
         age: Int?
     ): Result<Unit>
     suspend fun sendPasswordResetEmail(email: String): Result<Unit>
+    suspend fun signInWithGoogle(idToken: String): Result<User>
+    suspend fun signInWithFacebook(accessToken: String): Result<User>
 }

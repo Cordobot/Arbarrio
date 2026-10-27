@@ -1,3 +1,133 @@
 <resources>
     <string name="app_name">Arbarrio</string>
+
+    <!-- Auth -->
+    <string name="login_title">Bienvenido</string>
+    <string name="login_subtitle">Encuentra tu próximo hogar</string>
+    <string name="email_label">Correo electrónico</string>
+    <string name="password_label">Contraseña</string>
+    <string name="login_button">Iniciar Sesión</string>
+    <string name="no_account">¿No tienes cuenta? Regístrate</string>
+    <string name="forgot_password">¿Olvidaste tu contraseña?</string>
+    <string name="register_title">Crea tu cuenta</string>
+    <string name="register_subtitle">Únete a la comunidad de Arbarrio</string>
+    <string name="register_button">Registrarse</string>
+    <string name="role_label">¿Cuál es tu rol?</string>
+    <string name="role_tenant">Arrendatario</string>
+    <string name="role_landlord">Arrendador</string>
+    <string name="role_tenant_desc">Busco una vivienda para arrendar</string>
+    <string name="role_landlord_desc">Tengo propiedades para publicar</string>
+
+    <!-- Home -->
+    <string name="search_hint">Buscar barrios, ciudades…</string>
+    <string name="categories_title">Categorías</string>
+    <string name="featured_title">Propiedades Destacadas</string>
+    <string name="logout_title">Cerrar Sesión</string>
+    <string name="logout_message">¿Estás seguro de que deseas cerrar la sesión?</string>
+    <string name="logout_confirm">Sí, salir</string>
+    <string name="cancel">Cancelar</string>
+    <string name="loading">Cargando…</string>
+    <string name="no_properties">No se encontraron propiedades</string>
+    <string name="per_month">/ mes</string>
+    <string name="add_property">Publicar propiedad</string>
+
+    <!-- Categories -->
+    <string name="cat_all">Todos</string>
+    <string name="cat_apartments">Apartamentos</string>
+    <string name="cat_houses">Casas</string>
+    <string name="cat_rooms">Habitaciones</string>
+    <string name="cat_offices">Oficinas</string>
+
+    <!-- Drawer -->
+    <string name="menu_home">Inicio</string>
+    <string name="menu_my_properties">Mis propiedades</string>
+    <string name="menu_favorites">Favoritos</string>
+    <string name="menu_profile">Editar perfil</string>
+    <string name="menu_settings">Configuración</string>
+    <string name="menu_help">Ayuda y soporte</string>
+    <string name="verified_label">Verificado</string>
+    <string name="stat_properties">Propiedades</string>
+    <string name="stat_favorites">Favoritos</string>
+
+    <!-- Property Detail -->
+    <string name="contact_whatsapp">Contactar por WhatsApp</string>
+    <string name="call_owner">Llamar al dueño</string>
+    <string name="location_label">Ubicación</string>
+    <string name="description_label">Descripción</string>
+    <string name="no_description">Sin descripción disponible.</string>
+    <string name="details_label">Detalles</string>
+    <string name="price_label">Precio</string>
+    <string name="bedrooms_label">Habitaciones</string>
+    <string name="bathrooms_label">Baños</string>
+    <string name="area_label">Área</string>
+    <string name="property_not_found">Propiedad no encontrada</string>
+    <string name="map_label">Ubicación en el mapa</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Configuración</string>
+    <string name="security_section">Seguridad</string>
+    <string name="account_section">Cuenta</string>
+    <string name="biometric_label">Ingreso con Biometría</string>
+    <string name="biometric_desc">Usa tu huella o FaceID para entrar</string>
+    <string name="notifications_section">Notificaciones</string>
+    <string name="property_alerts">Alertas de Propiedades</string>
+    <string name="privacy_section">Privacidad</string>
+    <string name="app_section">App</string>
+    <string name="language_label">Idioma</string>
+    <string name="theme_label">Modo Oscuro</string>
+    <string name="select_language">Seleccionar Idioma</string>
+    <string name="select_theme">Seleccionar Tema</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Mi perfil</string>
+    <string name="edit_label">Editar</string>
+    <string name="done_label">Hecho</string>
+    <string name="save_changes">Guardar cambios</string>
+    <string name="first_name_label">Nombre</string>
+    <string name="last_name_label">Apellido</string>
+    <string name="full_name_label">Nombre completo</string>
+    <string name="phone_label">Teléfono</string>
+    <string name="id_number_label">Número de identificación</string>
+    <string name="age_label">Edad</string>
+    <string name="success_save">Cambios guardados con éxito</string>
+    <string name="info_section">Información Personal</string>
+    <string name="documents_section">Documentos</string>
+    <string name="cedula_label">Cédula</string>
+    <string name="years_label">años</string>
+    <string name="not_specified">Sin especificar</string>
+
+    <!-- Add Property -->
+    <string name="publish_property">Publicar Propiedad</string>
+    <string name="property_title">Título</string>
+    <string name="property_description">Descripción</string>
+    <string name="property_price">Precio mensual</string>
+    <string name="property_location">Ubicación / Barrio</string>
+    <string name="property_image_url">URL de imagen</string>
+    <string name="property_bedrooms">Habitaciones</string>
+    <string name="property_bathrooms">Baños</string>
+    <string name="property_area">Área (m²)</string>
+    <string name="property_category">Categoría</string>
+    <string name="publish_button">Publicar</string>
+    <string name="required_fields">Por favor, completa los campos requeridos.</string>
+
+    <!-- Favorites -->
+    <string name="favorites_title">Favoritos</string>
+    <string name="no_favorites">Aún no tienes favoritos</string>
+
+    <!-- My Properties -->
+    <string name="my_properties_title">Mis Propiedades</string>
+    <string name="no_my_properties">Aún no has publicado propiedades</string>
+    <string name="delete_property">Eliminar propiedad</string>
+
+    <!-- General -->
+    <string name="back">Volver</string>
+    <string name="error_generic">Ocurrió un error. Intenta de nuevo.</string>
+
+    <!-- Facebook Config -->
+    <string name="facebook_app_id">4484252408557779</string>
+    <string name="facebook_client_token">d97612651141f59b9e91fbee3e5ebfe6</string>
+    <string name="fb_login_protocol_scheme">fb4484252408557779</string>
+
+    <!-- Google Config -->
+    <string name="google_web_client_id">409370818416-i3b5dngr7ec9f6stpqp5u2p3laj4rbpt.apps.googleusercontent.com</string>
 </resources>

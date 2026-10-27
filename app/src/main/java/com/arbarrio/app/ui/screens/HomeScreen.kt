@@ -9,18 +9,11 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,6 +27,8 @@ import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import com.arbarrio.app.R
+import androidx.compose.ui.res.stringResource
 import com.arbarrio.app.domain.model.User
 import coil.compose.AsyncImage
 import com.arbarrio.app.domain.model.Property
@@ -42,8 +37,14 @@ import java.util.*
 
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.arbarrio.app.ui.theme.LogoutRed
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 
-import com.arbarrio.app.ui.components.AnimatedBackground
 
 class HomeScreen : Screen {
     @Composable
@@ -54,174 +55,260 @@ class HomeScreen : Screen {
         val categories by viewModel.categories.collectAsState()
         val selectedCategory by viewModel.selectedCategory.collectAsState()
         val user by viewModel.currentUser.collectAsState()
+        val currentCity by viewModel.currentCity.collectAsState()
+        val favoriteCount by viewModel.favoriteCount.collectAsState()
+        val myPropertiesCount by viewModel.myPropertiesCount.collectAsState()
+
+        val context = LocalContext.current
+        val locationPermissionLauncher = rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { permissions ->
+            if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true) {
+                viewModel.updateLocation()
+            }
+        }
+
+        LaunchedEffect(Unit) {
+            val fineLocationPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+            val coarseLocationPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
+            
+            if (fineLocationPermission == PackageManager.PERMISSION_GRANTED || coarseLocationPermission == PackageManager.PERMISSION_GRANTED) {
+                viewModel.updateLocation()
+            } else {
+                locationPermissionLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                )
+            }
+        }
 
         val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
         val scope = rememberCoroutineScope()
+        var showLogoutDialog by remember { mutableStateOf(false) }
+
+        if (showLogoutDialog) {
+            AlertDialog(
+                onDismissRequest = { showLogoutDialog = false },
+                title = { Text(stringResource(R.string.logout_title)) },
+                text = { Text(stringResource(R.string.logout_message)) },
+                confirmButton = {
+                    TextButton(onClick = { 
+                        showLogoutDialog = false
+                        navigator.replaceAll(LoginScreen())
+                    }) {
+                        Text(stringResource(R.string.logout_confirm), color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showLogoutDialog = false }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                }
+            )
+        }
 
         ModalNavigationDrawer(
             drawerState = drawerState,
             drawerContent = {
                 ModalDrawerSheet(
-                    drawerContainerColor = MaterialTheme.colorScheme.surface,
-                    drawerContentColor = MaterialTheme.colorScheme.onSurface
+                    drawerContainerColor = Color(0xFF0F0F12),
+                    drawerContentColor = Color.White,
+                    modifier = Modifier.width(320.dp),
+                    windowInsets = WindowInsets(0)
                 ) {
-                    Spacer(Modifier.height(32.dp))
-                    // Colorful Header
-                    Box(
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 24.dp)
-                            .background(
-                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                                RoundedCornerShape(24.dp)
-                            )
-                            .padding(16.dp)
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp)
+                            .verticalScroll(rememberScrollState())
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Surface(
-                                modifier = Modifier
-                                    .size(64.dp)
-                                    .border(3.dp, MaterialTheme.colorScheme.primary, CircleShape),
-                                shape = CircleShape,
-                                color = MaterialTheme.colorScheme.primary
+                        Spacer(Modifier.height(48.dp))
+                        
+                        // User Profile Card
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = Color(0xFF1B1B1F),
+                            shape = RoundedCornerShape(24.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = "User",
-                                    modifier = Modifier.padding(12.dp),
-                                    tint = Color.White
-                                )
-                            }
-                            
-                            Spacer(Modifier.width(16.dp))
-                            
-                            Column {
-                                Text(
-                                    text = user?.name ?: "Bienvenido",
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontSize = 18.sp,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = user?.email ?: "Arbarrio User",
-                                    fontSize = 12.sp,
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
-                                Spacer(Modifier.height(4.dp))
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        imageVector = Icons.Default.Star,
-                                        contentDescription = "Rating",
-                                        tint = Color(0xFFFFC107),
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                    Spacer(Modifier.width(4.dp))
+                                Surface(
+                                    modifier = Modifier.size(60.dp),
+                                    shape = CircleShape,
+                                    color = Color(0xFF6366F1)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        val initials = "${user?.name?.firstOrNull() ?: "A"}${user?.lastName?.firstOrNull() ?: "A"}".uppercase()
+                                        Text(initials, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                                    }
+                                }
+                                
+                                Spacer(Modifier.width(16.dp))
+                                
+                                Column {
                                     Text(
-                                        text = "${user?.rating ?: 0.0}",
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        color = MaterialTheme.colorScheme.secondary
+                                        text = "${user?.name ?: "Adrian"} ${user?.lastName ?: "Alvarez"}",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 18.sp,
+                                        color = Color.White
                                     )
+                                    Text(
+                                        text = stringResource(R.string.app_name) + " • Medellín",
+                                        fontSize = 12.sp,
+                                        color = Color.Gray
+                                    )
+                                    Surface(
+                                        color = Color(0xFF059669).copy(alpha = 0.1f),
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Box(modifier = Modifier.size(6.dp).background(Color(0xFF10B981), CircleShape))
+                                            Spacer(Modifier.width(6.dp))
+                                            Text(stringResource(R.string.verified_label), fontSize = 10.sp, color = Color(0xFF10B981), fontWeight = FontWeight.Bold)
+                                        }
+                                    }
                                 }
                             }
                         }
-                    }
-                    
-                    Spacer(Modifier.height(8.dp))
-                    
-                    val menuItems = listOf(
-                        Triple("Inicio", Icons.Default.Home) { /* Already here */ },
-                        Triple("Mis Propiedades", Icons.Default.LocationOn) { navigator.push(MyPropertiesScreen()) },
-                        Triple("Favoritos", Icons.Default.FavoriteBorder) { navigator.push(FavoritesScreen()) },
-                        Triple("Editar Perfil", Icons.Default.Edit) { navigator.push(EditProfileScreen()) },
-                        Triple("Configuración", Icons.Default.Settings) { navigator.push(SettingsScreen()) }
-                    )
-
-                    menuItems.forEach { (label, icon, action) ->
-                        NavigationDrawerItem(
-                            label = { Text(label, fontWeight = FontWeight.SemiBold) },
-                            selected = label == "Inicio",
+                        
+                        Spacer(Modifier.height(16.dp))
+                        
+                        // Quick Stats
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            DrawerStatBox(count = myPropertiesCount, label = stringResource(R.string.stat_properties), modifier = Modifier.weight(1f))
+                            DrawerStatBox(count = favoriteCount, label = stringResource(R.string.stat_favorites), modifier = Modifier.weight(1f))
+                        }
+                        
+                        Spacer(Modifier.height(24.dp))
+                        
+                        // Section: PRINCIPAL
+                        DrawerSectionHeader("PRINCIPAL")
+                        DrawerItem(icon = Icons.Default.Home, label = stringResource(R.string.menu_home), selected = true) {
+                            scope.launch { drawerState.close() }
+                        }
+                        DrawerItem(
+                            icon = Icons.Default.LocationOn,
+                            label = stringResource(R.string.menu_my_properties),
+                            selected = false,
+                            badge = if (myPropertiesCount == "0") null else myPropertiesCount
+                        ) {
+                            scope.launch { drawerState.close() }
+                            navigator.push(MyPropertiesScreen())
+                        }
+                        DrawerItem(
+                            icon = Icons.Default.Favorite,
+                            label = stringResource(R.string.menu_favorites),
+                            selected = false,
+                            badge = if (favoriteCount == "0") null else favoriteCount
+                        ) {
+                            scope.launch { drawerState.close() }
+                            navigator.push(FavoritesScreen())
+                        }
+                        
+                        Spacer(Modifier.height(24.dp))
+                        
+                        // Section: CUENTA
+                        DrawerSectionHeader(stringResource(R.string.security_section).uppercase())
+                        DrawerItem(icon = Icons.Default.Person, label = stringResource(R.string.menu_profile)) {
+                            scope.launch { drawerState.close() }
+                            navigator.push(EditProfileScreen())
+                        }
+                        DrawerItem(icon = Icons.Default.Settings, label = stringResource(R.string.menu_settings)) {
+                            scope.launch { drawerState.close() }
+                            navigator.push(SettingsScreen())
+                        }
+                        DrawerItem(icon = Icons.AutoMirrored.Filled.Help, label = stringResource(R.string.menu_help)) {}
+                        
+                        Spacer(Modifier.weight(1f))
+                        Spacer(Modifier.height(24.dp))
+                        
+                        // Logout Button
+                        Button(
                             onClick = { 
                                 scope.launch { drawerState.close() }
-                                action()
+                                showLogoutDialog = true 
                             },
-                            icon = { Icon(icon, null) },
-                            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
-                            colors = NavigationDrawerItemDefaults.colors(
-                                selectedContainerColor = Color(0xFF2196F3).copy(alpha = 0.2f),
-                                selectedIconColor = Color(0xFF2196F3),
-                                selectedTextColor = Color(0xFF2196F3),
-                                unselectedContainerColor = Color.Transparent
-                            )
-                        )
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.AutoMirrored.Filled.Logout, null, tint = LogoutRed)
+                                Spacer(Modifier.width(12.dp))
+                                Text("Cerrar sesión", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                            }
+                        }
+                        
+                        Spacer(Modifier.height(24.dp))
                     }
-
-                    Spacer(Modifier.weight(1f))
-                    
-                    NavigationDrawerItem(
-                        label = { Text("Cerrar Sesión", color = MaterialTheme.colorScheme.error) },
-                        selected = false,
-                        onClick = { 
-                            navigator.replaceAll(LoginScreen())
-                        },
-                        icon = { Icon(Icons.AutoMirrored.Filled.ExitToApp, null, tint = MaterialTheme.colorScheme.error) },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                    )
-                    Spacer(Modifier.height(16.dp))
                 }
             }
         ) {
             Scaffold(
-                containerColor = Color.Transparent,
+                containerColor = Color(0xFF0F0F12),
                 topBar = {
                     HomeTopBar(
+                        currentCity = currentCity,
                         onMenuClick = { scope.launch { drawerState.open() } }
                     )
                 },
                 floatingActionButton = {
                     FloatingActionButton(
                         onClick = { navigator.push(AddPropertyScreen()) },
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                        shape = RoundedCornerShape(16.dp)
+                        containerColor = Color(0xFF6366F1),
+                        contentColor = Color.White,
+                        shape = RoundedCornerShape(20.dp),
+                        elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 8.dp)
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = "Añadir Propiedad")
+                        Icon(Icons.Default.Add, contentDescription = "Añadir Propiedad", modifier = Modifier.size(28.dp))
                     }
                 }
             ) { padding ->
-                AnimatedBackground {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(padding)
-                    ) {
-                        SearchBar()
-                        
-                        CategorySection(
-                            categories = categories,
-                            selectedCategory = selectedCategory,
-                            onCategorySelected = { viewModel.selectCategory(it) }
-                        )
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                ) {
+                    Spacer(Modifier.height(8.dp))
+                    
+                    SearchBar()
+                    
+                    Spacer(Modifier.height(24.dp))
+                    
+                    CategorySection(
+                        categories = categories,
+                        selectedCategory = selectedCategory,
+                        onCategorySelected = { viewModel.selectCategory(it) }
+                    )
 
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            item {
-                                Text(
-                                    text = "Propiedades Cercanas",
-                                    fontSize = 22.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = MaterialTheme.colorScheme.onBackground
-                                )
-                            }
-                            items(properties, key = { it.id }) { property ->
-                                PropertyCard(
-                                    property = property,
-                                    onDetailClick = { navigator.push(PropertyDetailScreen(it)) }
-                                )
-                            }
+                    Spacer(Modifier.height(16.dp))
+
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 100.dp),
+                        verticalArrangement = Arrangement.spacedBy(20.dp)
+                    ) {
+                        items(properties) { property ->
+                            PropertyCard(
+                                property = property,
+                                onFavoriteClick = { viewModel.toggleFavorite(property.id) },
+                                onClick = { navigator.push(PropertyDetailScreen(property.id)) }
+                            )
                         }
                     }
                 }
@@ -230,50 +317,59 @@ class HomeScreen : Screen {
     }
 
     @Composable
-    fun HomeTopBar(onMenuClick: () -> Unit) {
+    fun HomeTopBar(currentCity: String, onMenuClick: () -> Unit) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
-                .padding(16.dp),
+                .padding(horizontal = 20.dp, vertical = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(
                     onClick = onMenuClick,
-                    modifier = Modifier.background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f), CircleShape)
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(Color(0xFF1B1B1F), RoundedCornerShape(14.dp))
+                        .border(1.dp, Color.White.copy(alpha = 0.05f), RoundedCornerShape(14.dp))
                 ) {
                     Icon(
                         imageVector = Icons.Default.Menu,
                         contentDescription = "Menu",
-                        tint = MaterialTheme.colorScheme.onBackground
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
-                Spacer(modifier = Modifier.width(12.dp))
+                
+                Spacer(modifier = Modifier.width(16.dp))
+                
                 Column {
                     Text(
-                        text = "Ubicación",
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.secondary,
+                        text = "Ubicación actual",
+                        fontSize = 12.sp,
+                        color = Color.Gray,
                         fontWeight = FontWeight.Medium
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.LocationOn,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = Color(0xFF6366F1),
                             modifier = Modifier.size(14.dp)
                         )
                         Spacer(Modifier.width(4.dp))
                         Text(
-                            text = "Córdoba, Argentina",
+                            text = currentCity,
                             fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
                         )
                     }
                 }
             }
+            
+            // Notification Bell or Profile initial as a secondary action
         }
     }
 
@@ -281,22 +377,37 @@ class HomeScreen : Screen {
     @Composable
     fun SearchBar() {
         var text by remember { mutableStateOf("") }
-        OutlinedTextField(
-            value = text,
-            onValueChange = { text = it },
-            placeholder = { Text("Buscar arriendos...") },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 20.dp),
+            color = Color(0xFF1B1B1F),
             shape = RoundedCornerShape(20.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
-                unfocusedBorderColor = Color.Transparent,
-                focusedBorderColor = MaterialTheme.colorScheme.primary
+            border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+        ) {
+            TextField(
+                value = text,
+                onValueChange = { text = it },
+                placeholder = { Text(stringResource(R.string.search_hint), color = Color.Gray, fontSize = 15.sp) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color(0xFF818CF8)) },
+                trailingIcon = { 
+                    IconButton(onClick = {}) {
+                        Icon(Icons.Default.Tune, contentDescription = "Filtros", tint = Color.Gray)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    cursorColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
+                )
             )
-        )
+        }
     }
 
     @Composable
@@ -306,73 +417,105 @@ class HomeScreen : Screen {
         onCategorySelected: (String) -> Unit
     ) {
         LazyRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(categories) { category ->
-                FilterChip(
-                    selected = category == selectedCategory,
+                val isSelected = category == selectedCategory
+                Surface(
                     onClick = { onCategorySelected(category) },
-                    label = { Text(category) },
+                    color = if (isSelected) Color(0xFF6366F1) else Color(0xFF1B1B1F),
                     shape = RoundedCornerShape(16.dp),
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primary,
-                        selectedLabelColor = Color.White
+                    border = if (isSelected) null else androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+                ) {
+                    Text(
+                        text = category,
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
+                        fontSize = 14.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                        color = if (isSelected) Color.White else Color.Gray
                     )
-                )
+                }
             }
         }
     }
 
     @Composable
-    fun PropertyCard(property: Property, onDetailClick: (Property) -> Unit) {
-        Card(
+    fun PropertyCard(
+        property: Property,
+        onFavoriteClick: () -> Unit,
+        onClick: () -> Unit,
+        onDeleteClick: (() -> Unit)? = null
+    ) {
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { onDetailClick(property) },
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                .padding(horizontal = 20.dp)
+                .clickable { onClick() },
+            color = Color(0xFF1B1B1F),
+            shape = RoundedCornerShape(32.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
         ) {
             Column {
-                Box {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(240.dp)
+                ) {
                     AsyncImage(
                         model = property.imageUrl,
-                        contentDescription = property.title,
+                        contentDescription = null,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(220.dp)
-                            .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)),
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)),
                         contentScale = ContentScale.Crop
                     )
+                    
+                    // Favorite Button
                     IconButton(
-                        onClick = { /* Toggle favorite */ },
+                        onClick = onFavoriteClick,
                         modifier = Modifier
                             .align(Alignment.TopEnd)
-                            .padding(12.dp)
-                            .background(Color.White.copy(alpha = 0.8f), CircleShape)
+                            .padding(16.dp)
+                            .background(Color.Black.copy(alpha = 0.3f), CircleShape)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.FavoriteBorder,
-                            contentDescription = "Favorite",
-                            tint = MaterialTheme.colorScheme.primary
+                            imageVector = if (property.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = null,
+                            tint = if (property.isFavorite) Color.Red else Color.White
                         )
                     }
-                    
+
+                    // Delete Button (if provided)
+                    if (onDeleteClick != null) {
+                        IconButton(
+                            onClick = onDeleteClick,
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .padding(16.dp)
+                                .background(Color.Black.copy(alpha = 0.3f), CircleShape)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Eliminar",
+                                tint = Color.Red
+                            )
+                        }
+                    }
+
+                    // Category Badge
                     Surface(
                         modifier = Modifier
                             .align(Alignment.BottomStart)
                             .padding(16.dp),
-                        color = MaterialTheme.colorScheme.primary,
+                        color = Color(0xFF6366F1),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
                             text = property.category,
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            fontSize = 12.sp,
+                            fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
@@ -387,50 +530,54 @@ class HomeScreen : Screen {
                     ) {
                         Text(
                             text = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-CO")).format(property.price),
-                            fontSize = 22.sp,
+                            fontSize = 24.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.primary
+                            color = Color.White
                         )
                         Text(
                             text = "/ mes",
-                            fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.secondary,
+                            fontSize = 14.sp,
+                            color = Color.Gray,
                             fontWeight = FontWeight.Medium
                         )
                     }
                     
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     
                     Text(
                         text = property.title,
-                        fontSize = 19.sp,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
+                        color = Color.White,
                         maxLines = 1
                     )
                     
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                     
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.LocationOn,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.secondary,
+                            tint = Color(0xFF818CF8),
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(Modifier.width(4.dp))
                         Text(
                             text = property.location,
                             fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.secondary
+                            color = Color.Gray
                         )
                     }
                     
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
                     
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        PropertyInfoItem(text = "${property.bedrooms} Hab", icon = Icons.Default.Home)
-                        PropertyInfoItem(text = "${property.bathrooms} Baños", icon = Icons.Default.Person) // Placeholder icon
-                        PropertyInfoItem(text = "${property.area} m²", icon = Icons.Default.LocationOn) // Placeholder
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        PropertyDetailItem(icon = Icons.Default.Hotel, value = "${property.bedrooms} Hab")
+                        PropertyDetailItem(icon = Icons.Default.Bathtub, value = "${property.bathrooms} Baños")
+                        PropertyDetailItem(icon = Icons.Default.Straighten, value = "${property.area} m²")
                     }
                 }
             }
@@ -438,22 +585,110 @@ class HomeScreen : Screen {
     }
 
     @Composable
-    fun PropertyInfoItem(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
+    fun PropertyDetailItem(icon: androidx.compose.ui.graphics.vector.ImageVector, value: String) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = Color.Gray,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(Modifier.width(6.dp))
+            Text(
+                text = value,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White
+            )
+        }
+    }
+
+    @Composable
+    fun DrawerStatBox(count: String, label: String, modifier: Modifier = Modifier) {
         Surface(
-            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
-            shape = RoundedCornerShape(12.dp)
+            modifier = modifier,
+            color = Color(0xFF1B1B1F).copy(alpha = 0.5f),
+            shape = RoundedCornerShape(16.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+        ) {
+            Column(
+                modifier = Modifier.padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(text = count, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                Text(text = label, fontSize = 10.sp, color = Color.Gray)
+            }
+        }
+    }
+
+    @Composable
+    fun DrawerSectionHeader(title: String) {
+        Text(
+            text = title,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Gray,
+            modifier = Modifier.padding(vertical = 12.dp),
+            letterSpacing = 1.sp
+        )
+    }
+
+    @Composable
+    fun DrawerItem(
+        icon: androidx.compose.ui.graphics.vector.ImageVector,
+        label: String,
+        selected: Boolean = false,
+        badge: String? = null,
+        onClick: () -> Unit
+    ) {
+        Surface(
+            onClick = onClick,
+            color = if (selected) Color(0xFF6366F1).copy(alpha = 0.1f) else Color.Transparent,
+            shape = RoundedCornerShape(16.dp)
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically) {
-                Icon(icon, null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
-                Spacer(Modifier.width(6.dp))
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Surface(
+                    modifier = Modifier.size(36.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    color = if (selected) Color(0xFF6366F1).copy(alpha = 0.2f) else Color.White.copy(alpha = 0.05f)
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        modifier = Modifier.padding(8.dp),
+                        tint = if (selected) Color(0xFF818CF8) else Color.Gray
+                    )
+                }
+                
+                Spacer(Modifier.width(16.dp))
+                
                 Text(
-                    text = text,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    text = label,
+                    fontSize = 15.sp,
+                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                    color = if (selected) Color.White else Color.Gray,
+                    modifier = Modifier.weight(1f)
                 )
+                
+                if (badge != null) {
+                    Surface(
+                        color = if (selected) Color(0xFF6366F1) else Color(0xFF3730A3),
+                        shape = CircleShape
+                    ) {
+                        Text(
+                            text = badge,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                }
             }
         }
     }

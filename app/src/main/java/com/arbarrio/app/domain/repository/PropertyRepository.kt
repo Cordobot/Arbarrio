@@ -8,4 +8,5 @@ interface PropertyRepository {
     suspend fun getPropertyById(id: String): Property?
     suspend fun addProperty(property: Property): Result<Unit>
     suspend fun toggleFavorite(propertyId: String)
+    suspend fun deleteProperty(propertyId: String): Result<Unit>
 }

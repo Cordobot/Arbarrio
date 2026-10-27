@@ -5,7 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.arbarrio.app.domain.model.Property
 import com.arbarrio.app.domain.repository.PropertyRepository
 import com.arbarrio.app.domain.repository.AuthRepository
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -53,20 +54,29 @@ class AddPropertyViewModel(
             _isLoading.value = true
             _error.value = null
             
-            val user = authRepository.currentUser.firstOrNull()
+            try {
+                // Ensure we get the actual user data, not just the initial null
+                val user = authRepository.currentUser.filterNotNull().first()
+                val userPhone = user.phone?.trim() ?: ""
 
-            val property = Property(
-                id = UUID.randomUUID().toString(),
-                title = title,
-                description = description,
+                if (userPhone.isEmpty()) {
+                    _error.value = "Tu perfil no tiene un número de teléfono registrado. Por favor, actualízalo en Mi Perfil."
+                    _isLoading.value = false
+                    return@launch
+                }
+
+                val property = Property(
+                    id = UUID.randomUUID().toString(),
+                title = title.trim(),
+                description = description.trim(),
                 price = priceDouble,
-                imageUrl = if (imageUrl.isBlank()) "https://via.placeholder.com/400" else imageUrl,
-                location = location,
+                imageUrl = if (imageUrl.isBlank()) "https://via.placeholder.com/400" else imageUrl.trim(),
+                location = location.trim(),
                 category = category,
                 bedrooms = bedroomsInt,
                 bathrooms = bathroomsInt,
                 area = areaInt,
-                ownerPhone = user?.phone ?: ""
+                ownerPhone = userPhone
             )
 
             val result = propertyRepository.addProperty(property)
@@ -76,6 +86,10 @@ class AddPropertyViewModel(
                 onSuccess = { onSuccess() },
                 onFailure = { _error.value = it.message ?: "Error al publicar propiedad." }
             )
+            } catch (e: Exception) {
+                _isLoading.value = false
+                _error.value = "Error al obtener datos del usuario: ${e.message}"
+            }
         }
     }
 }

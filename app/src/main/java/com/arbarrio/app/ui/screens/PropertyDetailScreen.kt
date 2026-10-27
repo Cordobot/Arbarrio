@@ -1,8 +1,9 @@
 package com.arbarrio.app.ui.screens
 
 import android.content.Intent
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -29,226 +30,253 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import coil.compose.AsyncImage
-import com.arbarrio.app.domain.model.Property
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.*
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.rememberMarkerState
 import java.text.NumberFormat
 import java.util.*
 
-data class PropertyDetailScreen(val property: Property) : Screen {
+import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
+
+data class PropertyDetailScreen(val propertyId: String) : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        val scrollState = rememberScrollState()
+        val viewModel = koinViewModel<PropertyDetailViewModel> { parametersOf(propertyId) }
+        val property by viewModel.property.collectAsState()
+        val isLoading by viewModel.isLoading.collectAsState()
         val context = LocalContext.current
+        val scrollState = rememberScrollState()
 
-        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
-            ) {
-                // Header Image
-                Box(modifier = Modifier.height(350.dp)) {
-                    AsyncImage(
-                        model = property.imageUrl,
-                        contentDescription = property.title,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-
-                // Property Info
+        Box(modifier = Modifier.fillMaxSize().background(Color(0xFF0F0F12))) {
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = Color(0xFF6366F1))
+            } else if (property == null) {
+                Text("Propiedad no encontrada", modifier = Modifier.align(Alignment.Center), color = Color.White)
+            } else {
+                val p = property!!
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp)
+                        .fillMaxSize()
+                        .verticalScroll(scrollState)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = property.category.uppercase(),
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = 12.sp,
-                            letterSpacing = 1.sp
-                        )
-                        Text(
-                            text = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-CO")).format(property.price),
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.primary
+                    // Header Image
+                    Box(modifier = Modifier.height(350.dp)) {
+                        AsyncImage(
+                            model = p.imageUrl,
+                            contentDescription = p.title,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Text(
-                        text = property.title,
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        lineHeight = 34.sp,
-                        color = Color.White
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = null,
-                            tint = Color.Gray,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(Modifier.width(6.dp))
-                        Text(
-                            text = property.location,
-                            fontSize = 16.sp,
-                            color = Color.Gray
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(32.dp))
-
-                    // Key Features Row
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        FeatureItem(label = "Habitaciones", value = property.bedrooms.toString())
-                        FeatureItem(label = "Baños", value = property.bathrooms.toString())
-                        FeatureItem(label = "Área", value = "${property.area} m²")
-                    }
-
-                    Spacer(modifier = Modifier.height(40.dp))
-
-                    Text(
-                        text = "Descripción",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Text(
-                        text = property.description.ifBlank { "Sin descripción disponible." },
-                        fontSize = 16.sp,
-                        color = Color.Gray,
-                        lineHeight = 24.sp
-                    )
-
-                    Spacer(modifier = Modifier.height(40.dp))
-
-                    // Google Maps Section
-                    Text(
-                        text = "Ubicación en el mapa",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                    
-                    Spacer(modifier = Modifier.height(20.dp))
-                    
-                    Box(
+                    // Property Info
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(250.dp)
-                            .clip(RoundedCornerShape(24.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .padding(24.dp)
                     ) {
-                        // Ensure latitude and longitude have safe defaults to prevent crash
-                        val lat = if (property.latitude != 0.0) property.latitude else 6.2442
-                        val lng = if (property.longitude != 0.0) property.longitude else -75.5812
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                            text = p.category.uppercase(),
+                                color = Color(0xFF6366F1),
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 12.sp,
+                                letterSpacing = 1.sp
+                            )
+                            val formattedPrice = try {
+                                NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-CO")).format(p.price)
+                            } catch (_: Exception) {
+                                "$${p.price}"
+                            }
+                            Text(
+                                text = formattedPrice,
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color(0xFF6366F1)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Text(
+                            text = p.title,
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            lineHeight = 34.sp,
+                            color = Color.White
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = null,
+                                tint = Color.Gray,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                text = p.location,
+                                fontSize = 16.sp,
+                                color = Color.White
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        // Key Features Row
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            FeatureItem(label = "Habitaciones", value = p.bedrooms.toString())
+                            FeatureItem(label = "Baños", value = p.bathrooms.toString())
+                            FeatureItem(label = "Área", value = "${p.area} m²")
+                        }
+
+                        Spacer(modifier = Modifier.height(40.dp))
+
+                        Text(
+                            text = "Descripción",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Text(
+                            text = p.description.ifBlank { "Sin descripción disponible." },
+                            fontSize = 16.sp,
+                            color = Color.Gray,
+                            lineHeight = 24.sp
+                        )
+
+                        Spacer(modifier = Modifier.height(40.dp))
+
+                        // Location Section
+                        Text(
+                            text = "Ubicación",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        val lat = if (p.latitude != 0.0 && !p.latitude.isNaN()) p.latitude else 6.2442
+                        val lng = if (p.longitude != 0.0 && !p.longitude.isNaN()) p.longitude else -75.5812
                         val propertyLatLng = LatLng(lat, lng)
-                        
                         val cameraPositionState = rememberCameraPositionState {
                             position = CameraPosition.fromLatLngZoom(propertyLatLng, 15f)
                         }
-                        
-                        GoogleMap(
-                            modifier = Modifier.fillMaxSize(),
-                            cameraPositionState = cameraPositionState,
-                            uiSettings = MapUiSettings(zoomControlsEnabled = false)
+                        val markerState = rememberMarkerState(position = propertyLatLng)
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(240.dp)
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(Color(0xFF1B1B1F))
                         ) {
-                            Marker(
-                                state = MarkerState(position = propertyLatLng),
-                                title = property.title,
-                                snippet = property.location
-                            )
+                            GoogleMap(
+                                modifier = Modifier.fillMaxSize(),
+                                cameraPositionState = cameraPositionState,
+                                uiSettings = MapUiSettings(zoomControlsEnabled = false)
+                            ) {
+                                Marker(
+                                    state = markerState,
+                                    title = p.title,
+                                    snippet = p.location
+                                )
+                            }
                         }
+
+                        Spacer(modifier = Modifier.height(140.dp))
                     }
-                    
-                    Spacer(modifier = Modifier.height(140.dp)) // Padding for floating button
                 }
-            }
 
-            // Top Toolbar (Overlay)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .statusBarsPadding()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                IconButton(
-                    onClick = { navigator.pop() },
-                    modifier = Modifier
-                        .background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                ) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
-                }
-                IconButton(
-                    onClick = { /* Toggle favorite */ },
-                    modifier = Modifier
-                        .background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                ) {
-                    Icon(
-                        imageVector = if (property.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder, 
-                        contentDescription = "Favorite", 
-                        tint = if (property.isFavorite) Color.Red else Color.White
-                    )
-                }
-            }
-
-            // Bottom Action Bar
-            Surface(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-                tonalElevation = 8.dp
-            ) {
+                // Top Toolbar (Overlay)
                 Row(
                     modifier = Modifier
-                        .padding(24.dp)
-                        .navigationBarsPadding(),
-                    verticalAlignment = Alignment.CenterVertically
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Button(
-                        onClick = { 
-                            property.ownerPhone?.let { phone ->
-                                if (phone.isNotBlank()) {
-                                    val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone"))
-                                    context.startActivity(intent)
-                                }
-                            }
-                        },
+                    IconButton(
+                        onClick = { navigator.pop() },
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(60.dp),
-                        shape = RoundedCornerShape(18.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
+                            .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                     ) {
-                        Icon(Icons.Default.Phone, contentDescription = null)
-                        Spacer(Modifier.width(12.dp))
-                        Text("Contactar al Arrendador", fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    }
+                    IconButton(
+                        onClick = { viewModel.toggleFavorite() },
+                        modifier = Modifier
+                            .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                    ) {
+                        Icon(
+                            imageVector = if (p.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder, 
+                            contentDescription = "Favorite", 
+                            tint = if (p.isFavorite) Color.Red else Color.White
+                        )
+                    }
+                }
+
+                // Bottom Action Bar
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth(),
+                    color = Color(0xFF1B1B1F).copy(alpha = 0.95f),
+                    tonalElevation = 8.dp
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .padding(24.dp)
+                            .navigationBarsPadding(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Button(
+                            onClick = { 
+                                p.ownerPhone?.let { phone ->
+                                    if (phone.isNotBlank()) {
+                                        // Clean phone: remove spaces, dashes, +
+                                        val cleanPhone = phone.replace(Regex("[^0-9]"), "")
+                                        // Add Colombia country code if missing
+                                        val intlPhone = if (cleanPhone.startsWith("57")) cleanPhone else "57$cleanPhone"
+                                        val waIntent = Intent(
+                                            Intent.ACTION_VIEW,
+                                            "https://wa.me/$intlPhone".toUri()
+                                        )
+                                        context.startActivity(waIntent)
+                                    }
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(60.dp),
+                            shape = RoundedCornerShape(18.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF25D366) // WhatsApp green
+                            )
+                        ) {
+                            Icon(Icons.Default.Phone, contentDescription = null)
+                            Spacer(Modifier.width(12.dp))
+                            Text("Contactar por WhatsApp", fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }

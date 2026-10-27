@@ -11,9 +11,14 @@ import com.arbarrio.app.domain.repository.PropertyRepository
 import com.arbarrio.app.ui.screens.*
 import org.koin.dsl.module
 import org.koin.android.ext.koin.androidContext
+import org.koin.androidx.viewmodel.dsl.viewModel
 import com.arbarrio.app.data.local.PreferencesManager
+import com.arbarrio.app.data.location.LocationService
 
 val appModule = module {
+    // Location
+    single { LocationService(androidContext()) }
+
     // Preferences (DataStore)
     single { PreferencesManager(androidContext()) }
 
@@ -35,13 +40,14 @@ val appModule = module {
 
     // Repositories
     single<AuthRepository> { AuthRepositoryImpl(get(), get()) }
-    single<PropertyRepository> { PropertyRepositoryImpl(get()) }
+    single<PropertyRepository> { PropertyRepositoryImpl(get(), get()) }
     
     // ViewModels
-    factory { AuthViewModel(get(), get()) }
-    factory { HomeViewModel(get(), get()) }
-    factory { AddPropertyViewModel(get(), get()) }
-    factory { EditProfileViewModel(get()) }
-    factory { MyPropertiesViewModel(get(), get()) }
-    factory { FavoritesViewModel(get()) }
+    viewModel { AuthViewModel(get(), get()) }
+    viewModel { HomeViewModel(get(), get(), get()) }
+    viewModel { AddPropertyViewModel(get(), get()) }
+    viewModel { EditProfileViewModel(get()) }
+    viewModel { MyPropertiesViewModel(get(), get()) }
+    viewModel { (propertyId: String) -> PropertyDetailViewModel(get(), propertyId) }
+    viewModel { FavoritesViewModel(get()) }
 }

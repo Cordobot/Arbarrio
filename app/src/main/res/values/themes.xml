@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <style name="Theme.Arbarrio" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Theme compatible with AppCompatActivity (required for per-app language support) -->
+    <style name="Theme.Arbarrio" parent="Theme.AppCompat.DayNight.NoActionBar" />
 </resources>

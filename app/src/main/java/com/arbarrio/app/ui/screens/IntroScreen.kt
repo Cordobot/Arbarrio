@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import com.arbarrio.app.ui.components.ArbarrioLogo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -52,33 +53,15 @@ class IntroScreen : Screen {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.primary),
+                .background(Color(0xFF1A2B4C)), // Logo Blue Background
             contentAlignment = Alignment.Center
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Home,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(100.dp)
-                        .scale(scale.value)
-                        .alpha(alpha.value),
-                    tint = Color.White
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Arbarrio",
-                    color = Color.White,
-                    fontSize = 48.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .scale(scale.value)
-                        .alpha(alpha.value)
-                )
-            }
+            ArbarrioLogo(
+                modifier = Modifier
+                    .scale(scale.value)
+                    .alpha(alpha.value),
+                size = 120.dp
+            )
         }
     }
 }

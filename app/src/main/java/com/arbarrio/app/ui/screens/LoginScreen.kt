@@ -1,16 +1,14 @@
 package com.arbarrio.app.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -26,6 +24,22 @@ import cafe.adriel.voyager.core.screen.Screen
 import org.koin.androidx.compose.koinViewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.arbarrio.app.ui.components.ArbarrioLogo
+import androidx.compose.ui.platform.LocalContext
+import com.arbarrio.app.R
+import androidx.compose.ui.res.stringResource
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
+import androidx.credentials.GetCredentialRequest
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import kotlinx.coroutines.launch
+import com.facebook.CallbackManager
+import com.facebook.FacebookCallback
+import com.facebook.FacebookException
+import com.facebook.login.LoginManager
+import com.facebook.login.LoginResult
+import android.app.Activity
 
 class LoginScreen : Screen {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -52,6 +66,29 @@ class LoginScreen : Screen {
         val isLoading by viewModel.isLoading.collectAsState()
         val error by viewModel.error.collectAsState()
 
+        val context = LocalContext.current
+        val webClientId = stringResource(R.string.google_web_client_id)
+        
+        val scope = rememberCoroutineScope()
+        val credentialManager = remember { CredentialManager.create(context) }
+
+        val callbackManager = remember { CallbackManager.Factory.create() }
+        
+        DisposableEffect(Unit) {
+            LoginManager.getInstance().registerCallback(callbackManager, object : FacebookCallback<LoginResult> {
+                override fun onSuccess(result: LoginResult) {
+                    viewModel.signInWithFacebook(result.accessToken.token) {
+                        navigator.replaceAll(HomeScreen())
+                    }
+                }
+                override fun onCancel() {}
+                override fun onError(error: FacebookException) {}
+            })
+            onDispose {
+                LoginManager.getInstance().unregisterCallback(callbackManager)
+            }
+        }
+
         Box(modifier = Modifier.fillMaxSize().background(Color(0xFF0F0E17))) {
             Column(
                 modifier = Modifier
@@ -61,37 +98,8 @@ class LoginScreen : Screen {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                // Logo Icon in Purple Box
-                Surface(
-                    modifier = Modifier.size(90.dp),
-                    shape = RoundedCornerShape(24.dp),
-                    color = Color(0xFF7C7CFF)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Default.Home,
-                            contentDescription = null,
-                            modifier = Modifier.size(50.dp),
-                            tint = Color.White
-                        )
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Text(
-                    text = "Arbarrio",
-                    fontSize = 40.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-                
-                Text(
-                    text = "Encuentra arriendo fácilmente",
-                    fontSize = 16.sp,
-                    color = Color(0xFF7C7CFF),
-                    fontWeight = FontWeight.Bold
-                )
+                // New Integrated Logo
+                ArbarrioLogo(size = 100.dp)
 
                 Spacer(modifier = Modifier.height(40.dp))
 
@@ -178,7 +186,7 @@ class LoginScreen : Screen {
                         border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFF87171).copy(alpha = 0.2f))
                     ) {
                         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Box(modifier = Modifier.size(8.dp).background(Color(0xFFF87171), androidx.compose.foundation.shape.CircleShape))
+                            Box(modifier = Modifier.size(8.dp).background(Color(0xFFF87171), CircleShape))
                             Spacer(Modifier.width(12.dp))
                             Text(
                                 text = error!!,
@@ -221,7 +229,7 @@ class LoginScreen : Screen {
                         .height(56.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7C7CFF)),
-                    enabled = !isLoading
+                    enabled = !isLoading && email.isNotBlank() && password.isNotBlank()
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
@@ -254,12 +262,46 @@ class LoginScreen : Screen {
                     SocialButton(
                         text = "Google",
                         imageUri = "google",
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            scope.launch {
+                                try {
+                                    val googleIdOption = GetGoogleIdOption.Builder()
+                                        .setFilterByAuthorizedAccounts(false)
+                                        .setServerClientId(webClientId)
+                                        .setAutoSelectEnabled(true)
+                                        .build()
+
+                                    val request = GetCredentialRequest.Builder()
+                                        .addCredentialOption(googleIdOption)
+                                        .build()
+
+                                    val result = credentialManager.getCredential(context, request)
+                                    val credential = result.credential
+
+                                    if (credential is CustomCredential && 
+                                        credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                                        val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                                        viewModel.signInWithGoogle(googleIdTokenCredential.idToken) {
+                                            navigator.replaceAll(HomeScreen())
+                                        }
+                                    }
+                                } catch (_: Exception) {
+                                    // Error manejado por el sistema o ViewModel
+                                }
+                            }
+                        }
                     )
                     SocialButton(
                         text = "Facebook",
                         imageUri = "facebook",
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            LoginManager.getInstance().logInWithReadPermissions(
+                                context as Activity,
+                                listOf("email", "public_profile")
+                            )
+                        }
                     )
                 }
             }
@@ -267,9 +309,9 @@ class LoginScreen : Screen {
     }
 
     @Composable
-    fun SocialButton(text: String, imageUri: String, modifier: Modifier) {
+    fun SocialButton(text: String, imageUri: String, modifier: Modifier, onClick: () -> Unit) {
         OutlinedButton(
-            onClick = { },
+            onClick = onClick,
             modifier = modifier.height(56.dp),
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0xFF1B1B1F)),

@@ -59,6 +59,7 @@ dependencies {
     implementation(libs.firebase.storage)
 
     // Koin
+    implementation(libs.koin.core)
     implementation(libs.koin.android)
     implementation(libs.koin.compose)
 
@@ -75,15 +76,26 @@ dependencies {
     // Coil
     implementation(libs.coil.compose)
     
-    // Maps
+    // Maps & Location
     implementation(libs.maps.compose)
     implementation(libs.play.services.maps)
+    implementation(libs.play.services.location)
     
     // DataStore
     implementation("androidx.datastore:datastore-preferences:1.1.1")
     
+    // AppCompat (required for AppCompatActivity and per-app language support)
+    implementation("androidx.appcompat:appcompat:1.7.0")
+    
     // Biometric
     implementation(libs.androidx.biometric)
+    
+    // Social Auth
+    implementation(libs.play.services.auth)
+    implementation(libs.facebook.android.sdk)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

@@ -24,3 +24,9 @@ val Indigo900 = Color(0xFF312E81)
 val White = Color(0xFFFFFFFF)
 val Black = Color(0xFF000000)
 val Red500 = Color(0xFFEF4444)
+
+// Logo Specific Colors
+val LogoBlue = Color(0xFF1A2B4C)
+val LogoMint = Color(0xFF5DE2A2)
+val LogoOrange = Color(0xFFFDBB5D)
+val LogoutRed = Color(0xFFFF4B4B)

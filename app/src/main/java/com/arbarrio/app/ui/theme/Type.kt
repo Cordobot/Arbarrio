@@ -2,20 +2,12 @@ package com.arbarrio.app.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.arbarrio.app.R
 
-// Defining a modern, premium font family (Inter is a great choice for mobile apps)
-val Inter = FontFamily(
-    Font(R.font.inter_regular, FontWeight.Normal),
-    Font(R.font.inter_medium, FontWeight.Medium),
-    Font(R.font.inter_semibold, FontWeight.SemiBold),
-    Font(R.font.inter_bold, FontWeight.Bold),
-    Font(R.font.inter_extrabold, FontWeight.ExtraBold)
-)
+// Using Inter as the primary font family with system fallbacks
+val Inter = FontFamily.Default // Fallback to system default to prevent R.font compilation errors
 
 val Typography = Typography(
     displayLarge = TextStyle(

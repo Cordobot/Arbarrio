@@ -13,27 +13,38 @@ class MyPropertiesViewModel(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    private val _properties = MutableStateFlow<List<Property>>(emptyList())
-    val properties = _properties.asStateFlow()
-
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
-    init {
-        loadMyProperties()
+    val properties = combine(
+        propertyRepository.getProperties(),
+        authRepository.currentUser
+    ) { allProperties, user ->
+        val userPhone = user?.phone?.trim() ?: ""
+        if (userPhone.isEmpty()) {
+            emptyList()
+        } else {
+            allProperties.filter { 
+                val ownerPhone = it.ownerPhone?.trim() ?: ""
+                // Show properties owned by user OR orphaned ones so they can be cleaned up
+                ownerPhone == userPhone || ownerPhone.isEmpty() 
+            }
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    fun toggleFavorite(propertyId: String) {
+        viewModelScope.launch {
+            propertyRepository.toggleFavorite(propertyId)
+        }
     }
 
-    fun loadMyProperties() {
+    fun deleteProperty(propertyId: String) {
         viewModelScope.launch {
-            _isLoading.value = true
-            val currentUser = authRepository.currentUser.firstOrNull()
-            if (currentUser != null) {
-                propertyRepository.getProperties().collect { allProperties ->
-                    // Filter properties owned by current user (by phone for now as per previous logic)
-                    _properties.value = allProperties.filter { it.ownerPhone == currentUser.phone && it.ownerPhone != null && it.ownerPhone.isNotBlank() }
-                }
-            }
-            _isLoading.value = false
+            propertyRepository.deleteProperty(propertyId)
         }
     }
 }

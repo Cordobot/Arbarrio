@@ -3,9 +3,10 @@ package com.arbarrio.app.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -21,7 +22,7 @@ import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import com.arbarrio.app.ui.components.AnimatedBackground
+
 import org.koin.androidx.compose.koinViewModel
 
 class FavoritesScreen : Screen {
@@ -34,10 +35,10 @@ class FavoritesScreen : Screen {
         val isLoading by viewModel.isLoading.collectAsState()
 
         Scaffold(
-            containerColor = Color.Transparent,
+            containerColor = Color(0xFF0F0F12),
             topBar = {
                 TopAppBar(
-                    title = { Text("Mis Favoritos", color = Color.White, fontWeight = FontWeight.Bold) },
+                    title = { Text("Favoritos", color = Color.White, fontWeight = FontWeight.Bold) },
                     navigationIcon = {
                         IconButton(onClick = { navigator.pop() }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color.White)
@@ -47,62 +48,68 @@ class FavoritesScreen : Screen {
                 )
             }
         ) { padding ->
-            AnimatedBackground {
-                Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-                    if (isLoading) {
-                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = Color(0xFF7C7CFF))
-                    } else if (properties.isEmpty()) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(24.dp),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
+            Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+                if (isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = Color(0xFF6366F1))
+                } else if (properties.isEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(32.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Surface(
+                            modifier = Modifier.size(120.dp),
+                            color = Color(0xFF1B1B1F),
+                            shape = CircleShape
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Favorite,
                                 contentDescription = null,
-                                modifier = Modifier.size(100.dp),
-                                tint = Color(0xFF7C7CFF).copy(alpha = 0.2f)
+                                modifier = Modifier.padding(30.dp),
+                                tint = Color(0xFF6366F1).copy(alpha = 0.2f)
                             )
-                            Spacer(modifier = Modifier.height(24.dp))
-                            Text(
-                                text = "No tienes favoritos",
-                                fontSize = 24.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Explora propiedades y guarda tus favoritas para verlas aquí.",
-                                fontSize = 16.sp,
-                                color = Color.Gray,
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.height(40.dp))
-                            Button(
-                                onClick = { navigator.pop() },
-                                modifier = Modifier.fillMaxWidth().height(60.dp),
-                                shape = RoundedCornerShape(18.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7C7CFF))
-                            ) {
-                                Icon(Icons.Default.Home, contentDescription = null)
-                                Spacer(Modifier.width(12.dp))
-                                Text("Explorar Propiedades", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                            }
                         }
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(20.dp)
+                        Spacer(modifier = Modifier.height(32.dp))
+                        Text(
+                            text = "Aún no tienes favoritos",
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "Guarda las propiedades que más te gusten para verlas aquí más tarde.",
+                            fontSize = 15.sp,
+                            color = Color.Gray,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(48.dp))
+                        Button(
+                            onClick = { navigator.pop() },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6366F1))
                         ) {
-                            items(properties) { property ->
-                                HomeScreen().PropertyCard(
-                                    property = property,
-                                    onDetailClick = { navigator.push(PropertyDetailScreen(it)) }
-                                )
-                            }
+                            Text("Explorar Propiedades", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(vertical = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(20.dp)
+                    ) {
+                        items(properties) { property ->
+                            HomeScreen().PropertyCard(
+                                property = property,
+                                onFavoriteClick = { viewModel.toggleFavorite(property.id) },
+                                onClick = { navigator.push(PropertyDetailScreen(property.id)) }
+                            )
                         }
                     }
                 }

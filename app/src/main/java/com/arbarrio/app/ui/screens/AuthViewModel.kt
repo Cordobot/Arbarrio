@@ -37,12 +37,20 @@ class AuthViewModel(
     val error = _error.asStateFlow()
 
     fun signIn(email: String, password: String, onSuccess: () -> Unit) {
+        val trimmedEmail = email.trim()
+        val trimmedPassword = password.trim()
+
+        if (trimmedEmail.isBlank() || trimmedPassword.isBlank()) {
+            _error.value = "Por favor, ingresa tu correo y contraseña."
+            return
+        }
+
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
-            authRepository.signInWithEmail(email, password)
+            authRepository.signInWithEmail(trimmedEmail, trimmedPassword)
                 .onSuccess { onSuccess() }
-                .onFailure { _error.value = it.message }
+                .onFailure { _error.value = it.message ?: "Error al iniciar sesión. Verifica tus credenciales." }
             _isLoading.value = false
         }
     }
@@ -56,27 +64,67 @@ class AuthViewModel(
         idNumber: String, 
         onSuccess: () -> Unit
     ) {
+        val trimmedEmail = email.trim()
+        val trimmedPassword = password.trim()
+        val trimmedName = name.trim()
+        val trimmedLastName = lastName.trim()
+        val trimmedPhone = phone.trim()
+        val trimmedId = idNumber.trim()
+
+        if (trimmedEmail.isBlank() || trimmedPassword.isBlank() || trimmedName.isBlank() || trimmedLastName.isBlank()) {
+            _error.value = "Por favor, completa todos los campos obligatorios."
+            return
+        }
+
+        if (trimmedPassword.length < 6) {
+            _error.value = "La contraseña debe tener al menos 6 caracteres."
+            return
+        }
+
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
-            authRepository.signUpWithEmail(email, password, name, lastName, phone, idNumber)
+            authRepository.signUpWithEmail(trimmedEmail, trimmedPassword, trimmedName, trimmedLastName, trimmedPhone, trimmedId)
                 .onSuccess { onSuccess() }
-                .onFailure { _error.value = it.message }
+                .onFailure { _error.value = it.message ?: "Error al crear la cuenta. Intenta de nuevo." }
             _isLoading.value = false
         }
     }
 
     fun resetPassword(email: String, onSuccess: () -> Unit) {
-        if (email.isBlank()) {
+        val trimmedEmail = email.trim()
+        if (trimmedEmail.isBlank()) {
             _error.value = "Ingresa tu correo para recuperar la clave."
             return
         }
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
-            authRepository.sendPasswordResetEmail(email)
+            authRepository.sendPasswordResetEmail(trimmedEmail)
                 .onSuccess { onSuccess() }
-                .onFailure { _error.value = it.message }
+                .onFailure { _error.value = it.message ?: "No se pudo enviar el correo de recuperación." }
+            _isLoading.value = false
+        }
+    }
+
+    fun signInWithGoogle(idToken: String, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            authRepository.signInWithGoogle(idToken)
+                .onSuccess { onSuccess() }
+                .onFailure { _error.value = it.message ?: "Error al iniciar sesión con Google." }
+            _isLoading.value = false
+        }
+    }
+
+    fun signInWithFacebook(accessToken: String, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            authRepository.signInWithFacebook(accessToken)
+                .onSuccess { onSuccess() }
+                .onFailure { _error.value = it.message ?: "Error al iniciar sesión con Facebook." }
             _isLoading.value = false
         }
     }

@@ -18,6 +18,11 @@ class PreferencesManager(private val context: Context) {
         val REMEMBER_ME_KEY = booleanPreferencesKey("remember_me")
         val SAVED_EMAIL_KEY = stringPreferencesKey("saved_email")
         val BIOMETRIC_ENABLED_KEY = booleanPreferencesKey("biometric_enabled")
+        val LANGUAGE_KEY = stringPreferencesKey("app_language")
+    }
+
+    val language: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[LANGUAGE_KEY] ?: "es"
     }
 
     val isRememberMeEnabled: Flow<Boolean> = context.dataStore.data.map { preferences ->
@@ -46,6 +51,12 @@ class PreferencesManager(private val context: Context) {
     suspend fun saveBiometricSetting(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[BIOMETRIC_ENABLED_KEY] = enabled
+        }
+    }
+
+    suspend fun saveLanguage(languageCode: String) {
+        context.dataStore.edit { preferences ->
+            preferences[LANGUAGE_KEY] = languageCode
         }
     }
 }

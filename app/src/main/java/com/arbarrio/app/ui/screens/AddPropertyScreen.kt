@@ -8,9 +8,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -39,95 +43,119 @@ class AddPropertyScreen : Screen {
         val error by viewModel.error.collectAsState()
 
         Scaffold(
-            containerColor = Color.Transparent,
+            containerColor = Color(0xFF0F0F12),
             topBar = {
                 TopAppBar(
-                    title = { Text("Publicar Propiedad") },
+                    title = { Text("Publicar Propiedad", color = Color.White, fontWeight = FontWeight.Bold) },
                     navigationIcon = {
                         IconButton(onClick = { navigator.pop() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color.White)
                         }
-                    }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
                 )
             }
         ) { padding ->
-            AnimatedBackground {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                        .padding(16.dp)
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(20.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
                 if (error != null) {
-                    Text(text = error!!, color = MaterialTheme.colorScheme.error)
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = Color.Red.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = error!!, 
+                            color = Color.Red,
+                            modifier = Modifier.padding(16.dp),
+                            fontSize = 14.sp
+                        )
+                    }
                 }
 
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text("Título") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                // Section Title
+                Text("Información Básica", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
 
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text("Descripción") },
-                    modifier = Modifier.fillMaxWidth(),
-                    minLines = 3
-                )
+                PremiumTextField(value = title, onValueChange = { title = it }, label = "Título de la publicación")
+                PremiumTextField(value = description, onValueChange = { description = it }, label = "Descripción detallada", minLines = 3)
+                PremiumTextField(value = price, onValueChange = { price = it }, label = "Precio (COP)", keyboardType = KeyboardType.Number)
 
-                OutlinedTextField(
-                    value = price,
-                    onValueChange = { price = it },
-                    label = { Text("Precio (COP)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                // Neighborhood Dropdown
+                var neighborhoodExpanded by remember { mutableStateOf(false) }
+                val medellinNeighborhoods = listOf(
+                    "El Poblado", "Laureles", "Belén", "Robledo", "Aranjuez", "Castilla", 
+                    "Buenos Aires", "La Candelaria", "Guayabal", "San Cristóbal", 
+                    "Santa Cruz", "Popular", "Manrique", "Doce de Octubre", "Villa Hermosa", "San Javier"
+                ).sorted()
 
-                OutlinedTextField(
-                    value = location,
-                    onValueChange = { location = it },
-                    label = { Text("Ubicación") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                OutlinedTextField(
-                    value = imageUrl,
-                    onValueChange = { imageUrl = it },
-                    label = { Text("URL de la imagen") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                var expanded by remember { mutableStateOf(false) }
-                val categoriesList = listOf("Apartamentos", "Casas", "Habitaciones", "Locales", "Apartaestudios")
-
+                Text("Ubicación en Medellín", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = it },
+                    expanded = neighborhoodExpanded,
+                    onExpandedChange = { neighborhoodExpanded = it },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    OutlinedTextField(
-                        value = category,
+                    PremiumTextField(
+                        value = location,
                         onValueChange = {},
+                        label = "Barrio",
                         readOnly = true,
-                        label = { Text("Categoría") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = neighborhoodExpanded) },
                         modifier = Modifier.menuAnchor().fillMaxWidth()
                     )
                     ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
+                        expanded = neighborhoodExpanded,
+                        onDismissRequest = { neighborhoodExpanded = false },
+                        modifier = androidx.compose.ui.Modifier.background(Color(0xFF1B1B1F))
+                    ) {
+                        medellinNeighborhoods.forEach { selectionOption ->
+                            DropdownMenuItem(
+                                text = { Text(selectionOption, color = Color.White) },
+                                onClick = {
+                                    location = selectionOption
+                                    neighborhoodExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                PremiumTextField(value = imageUrl, onValueChange = { imageUrl = it }, label = "URL de la imagen (Opcional)")
+
+                // Category Dropdown
+                var categoryExpanded by remember { mutableStateOf(false) }
+                val categoriesList = listOf("Apartamentos", "Casas", "Habitaciones", "Locales", "Apartaestudios")
+
+                Text("Detalles de la Propiedad", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                ExposedDropdownMenuBox(
+                    expanded = categoryExpanded,
+                    onExpandedChange = { categoryExpanded = it },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    PremiumTextField(
+                        value = category,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = "Categoría",
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
+                        modifier = Modifier.menuAnchor().fillMaxWidth()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = categoryExpanded,
+                        onDismissRequest = { categoryExpanded = false },
+                        modifier = androidx.compose.ui.Modifier.background(Color(0xFF1B1B1F))
                     ) {
                         categoriesList.forEach { selectionOption ->
                             DropdownMenuItem(
-                                text = { Text(selectionOption) },
+                                text = { Text(selectionOption, color = Color.White) },
                                 onClick = {
                                     category = selectionOption
-                                    expanded = false
+                                    categoryExpanded = false
                                 }
                             )
                         }
@@ -135,31 +163,12 @@ class AddPropertyScreen : Screen {
                 }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    OutlinedTextField(
-                        value = bedrooms,
-                        onValueChange = { bedrooms = it },
-                        label = { Text("Habitaciones") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f)
-                    )
-                    OutlinedTextField(
-                        value = bathrooms,
-                        onValueChange = { bathrooms = it },
-                        label = { Text("Baños") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f)
-                    )
+                    PremiumTextField(value = bedrooms, onValueChange = { bedrooms = it }, label = "Hab.", keyboardType = KeyboardType.Number, modifier = Modifier.weight(1f))
+                    PremiumTextField(value = bathrooms, onValueChange = { bathrooms = it }, label = "Baños", keyboardType = KeyboardType.Number, modifier = Modifier.weight(1f))
+                    PremiumTextField(value = area, onValueChange = { area = it }, label = "m²", keyboardType = KeyboardType.Number, modifier = Modifier.weight(1f))
                 }
 
-                OutlinedTextField(
-                    value = area,
-                    onValueChange = { area = it },
-                    label = { Text("Área (m²)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 Button(
                     onClick = {
@@ -180,17 +189,53 @@ class AddPropertyScreen : Screen {
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .height(60.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6366F1)),
                     enabled = !isLoading
                 ) {
                     if (isLoading) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary)
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                     } else {
-                        Text("Publicar")
+                        Text("Publicar Ahora", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     }
                 }
-                }
+                
+                Spacer(modifier = Modifier.height(40.dp))
             }
         }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun PremiumTextField(
+        value: String,
+        onValueChange: (String) -> Unit,
+        label: String,
+        modifier: Modifier = Modifier,
+        keyboardType: KeyboardType = KeyboardType.Text,
+        minLines: Int = 1,
+        readOnly: Boolean = false,
+        trailingIcon: @Composable (() -> Unit)? = null
+    ) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            label = { Text(label, color = Color.Gray) },
+            modifier = modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            minLines = minLines,
+            readOnly = readOnly,
+            trailingIcon = trailingIcon,
+            shape = RoundedCornerShape(16.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                focusedBorderColor = Color(0xFF6366F1),
+                unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
+                focusedContainerColor = Color(0xFF1B1B1F),
+                unfocusedContainerColor = Color(0xFF1B1B1F)
+            )
+        )
     }
 }
