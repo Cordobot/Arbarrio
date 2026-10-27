@@ -124,8 +124,5 @@
     <string name="error_generic">An error occurred. Please try again.</string>
     
     <!-- Facebook Config -->
-    <string name="facebook_app_id">4484252408557779</string>
-    <string name="facebook_client_token">d97612651141f59b9e91fbee3e5ebfe6</string>
-    <string name="fb_login_protocol_scheme">fb4484252408557779</string>
     <string name="google_web_client_id">409370818416-i3b5dngr7ec9f6stpqp5u2p3laj4rbpt.apps.googleusercontent.com</string>
 </resources>
